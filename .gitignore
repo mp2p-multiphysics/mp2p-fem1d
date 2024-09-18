@@ -1,0 +1,15 @@
+# folders to ignore
+__pycache__/
+.vscode/
+Eigen/
+fem_test*/
+generator/
+input/
+output/
+
+# files to ignore
+.DS_Store
+*.cpp
+*.py
+*.csv
+fem_test*
