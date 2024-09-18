@@ -8,6 +8,7 @@ input/
 output/
 
 # files to ignore
+.gitignore
 .DS_Store
 *.cpp
 *.py
