@@ -33,7 +33,7 @@ class PhysicsSolidHeatTransferSteadyLine2
     int start_row = -1;
 
     // functions
-    void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_last_iteration_vec);
+    void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
 
     // default constructor
     PhysicsSolidHeatTransferSteadyLine2()
@@ -73,7 +73,7 @@ class PhysicsSolidHeatTransferSteadyLine2
 
 void PhysicsSolidHeatTransferSteadyLine2::matrix_fill
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_last_iteration_vec
+    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
 )
 {
 

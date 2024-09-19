@@ -16,10 +16,11 @@ class MatrixEquationSteady
     // matrix equation variables
     Eigen::SparseMatrix<double> a_mat;
     Eigen::VectorXd b_vec;
-    Eigen::VectorXd x_last_iteration_vec;
+    Eigen::VectorXd x_vec;
     int num_equation = 0;
 
     // functions
+    void iterate_x_vec();
 
     // default constructor
     MatrixEquationSteady()
@@ -71,13 +72,27 @@ class MatrixEquationSteady
         // initialize matrix equation variables
         a_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
         b_vec = Eigen::VectorXd::Zero(num_equation);
-        x_last_iteration_vec = Eigen::VectorXd::Zero(num_equation);
+        x_vec = Eigen::VectorXd::Zero(num_equation);  // edit later to use initial values
 
     }
 
 };
 
+void MatrixEquationSteady::iterate_x_vec()
+{
 
+    // fill up a_mat and b_vec
+    for (auto physics_ptr : physics_ptr_vec)
+    {
+        physics_ptr->matrix_fill(a_mat, b_vec, x_vec);
+    }
 
+    // solve the matrix equation
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    solver.analyzePattern(a_mat);
+    solver.factorize(a_mat);
+    x_vec = solver.solve(b_vec);
+
+}
 
 #endif
