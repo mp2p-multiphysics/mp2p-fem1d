@@ -1,15 +1,15 @@
-#ifndef INPUT_BOUNDARY_LINE2_CSV
-#define INPUT_BOUNDARY_LINE2_CSV
-#include <sstream>
+#ifndef INITIALIZE_BOUNDARY_LINE2_CSV
+#define INITIALIZE_BOUNDARY_LINE2_CSV
 #include <fstream>
+#include <sstream>
 #include <vector>
-#include "grid_line2.hpp"
+#include "boundary_line2.hpp"
 
-BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::string file_in_value_str, std::string file_in_config_str)
+BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, std::string file_in_value_str, std::string file_in_config_str)
 {
 
     // initialize struct with boundary condition (BC) data
-    BoundaryLine2Struct bl2s;
+    BoundaryLine2Struct boundary_l2s;
 
     // read file with flux BC data
     std::ifstream file_in_flux_stream(file_in_flux_str);
@@ -30,7 +30,7 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
         }
 
         // count number of particles
-        bl2s.num_element_flux++;
+        boundary_l2s.num_element_flux++;
 
         // convert line string into stringstream
         std::stringstream line_flux_stream(line_flux_str);
@@ -46,9 +46,9 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
             // store values in appropriate vector
             switch (value_flux_num)
             {
-                case 0: bl2s.element_flux_id_vec.push_back(std::stoi(value_flux_str)); break;
-                case 1: bl2s.element_flux_pa_loc_vec.push_back(std::stoi(value_flux_str)); break;
-                case 2: bl2s.element_flux_config_id_vec.push_back(std::stoi(value_flux_str)); break;
+                case 0: boundary_l2s.element_flux_id_vec.push_back(std::stoi(value_flux_str)); break;
+                case 1: boundary_l2s.element_flux_pa_loc_vec.push_back(std::stoi(value_flux_str)); break;
+                case 2: boundary_l2s.element_flux_config_id_vec.push_back(std::stoi(value_flux_str)); break;
             }
 
             // increment value count
@@ -82,7 +82,7 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
         }
 
         // count number of particles
-        bl2s.num_element_value++;
+        boundary_l2s.num_element_value++;
 
         // convert line string into stringstream
         std::stringstream line_value_stream(line_value_str);
@@ -98,9 +98,9 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
             // store values in appropriate vector
             switch (value_value_num)
             {
-                case 0: bl2s.element_value_id_vec.push_back(std::stoi(value_value_str)); break;
-                case 1: bl2s.element_value_pa_loc_vec.push_back(std::stoi(value_value_str)); break;
-                case 2: bl2s.element_value_config_id_vec.push_back(std::stoi(value_value_str)); break;
+                case 0: boundary_l2s.element_value_id_vec.push_back(std::stoi(value_value_str)); break;
+                case 1: boundary_l2s.element_value_pa_loc_vec.push_back(std::stoi(value_value_str)); break;
+                case 2: boundary_l2s.element_value_config_id_vec.push_back(std::stoi(value_value_str)); break;
             }
 
             // increment value count
@@ -119,8 +119,8 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
     std::ifstream file_in_config_stream(file_in_config_str);
 
     // initialize struct with BC type data
-    BoundaryConfigLine2Struct bcl2s_sub;  // temporarily stores BoundaryTypeData for insertion into bl2s
-    BoundaryConfigLine2Struct bcl2s_new;  // new copy of BoundaryTypeData object
+    BoundaryConfigLine2Struct boundaryconfig_sub_l2s;  // temporarily stores BoundaryTypeData for insertion into boundary_l2s
+    BoundaryConfigLine2Struct boundaryconfig_new_l2s;  // new copy of BoundaryTypeData object
 
     // initialize for iteration
     bool is_config_header = true;  // true while reading header
@@ -159,7 +159,7 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
             if (is_config_next)
             {
                 subline_config_str = subline_config_str.substr(1, subline_config_str.length()-3);  // remove quotes and comma
-                bcl2s_sub.boundary_type_str = subline_config_str;
+                boundaryconfig_sub_l2s.boundary_type_str = subline_config_str;
                 is_config_next = false; // next line is not a BC type
             }
 
@@ -179,12 +179,12 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
                 // iterate through each value
                 while (std::getline(subline_config_stream, value_config_str, ','))
                 {
-                    bcl2s_sub.boundary_parameter_vec.push_back(std::stod(value_config_str));
+                    boundaryconfig_sub_l2s.boundary_parameter_vec.push_back(std::stod(value_config_str));
                 }
 
                 // store BoundaryTypeData object
-                bl2s.boundary_config_vec.push_back(bcl2s_sub);
-                bcl2s_sub = bcl2s_new;  // clears bcl2s_sub
+                boundary_l2s.boundary_config_vec.push_back(boundaryconfig_sub_l2s);
+                boundaryconfig_sub_l2s = boundaryconfig_new_l2s;  // clears boundaryconfig_sub_l2s
 
                 // next line is not a BC value
                 is_value_next = false;
@@ -210,7 +210,7 @@ BoundaryLine2Struct input_boundary_line2_csv(std::string file_in_flux_str, std::
     // close BC type file
     file_in_config_stream.close();
 
-    return bl2s;
+    return boundary_l2s;
 
 }
 

@@ -1,4 +1,5 @@
 # folders to ignore
+_archive/
 __pycache__/
 .vscode/
 Eigen/
