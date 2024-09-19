@@ -1,6 +1,5 @@
 #ifndef MESH_LINE2
 #define MESH_LINE2
-#include <vector>
 #include "container_typedef.hpp"
 
 struct MeshLine2Struct

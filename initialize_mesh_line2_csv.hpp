@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "mesh_line2.hpp"
+#include "container_mesh.hpp"
 
 MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::string file_in_element_str)
 {
@@ -12,7 +12,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
     std::ifstream file_in_point_stream(file_in_point_str);
 
     // initialize struct with mesh data
-    MeshLine2Struct mesh_l2s;
+    MeshLine2Struct mesh_l2;
 
     // initialize for iteration
     bool is_point_header = true;  // true while reading header
@@ -30,7 +30,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2s.num_point++;
+        mesh_l2.num_point++;
 
         // convert line string into stringstream
         std::stringstream line_point_stream(line_point_str);
@@ -46,8 +46,8 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
             // store values in appropriate vector
             switch (value_point_num)
             {
-                case 0: mesh_l2s.point_id_vec.push_back(std::stoi(value_point_str)); break;
-                case 1: mesh_l2s.point_pos_x_vec.push_back(std::stod(value_point_str)); break;
+                case 0: mesh_l2.point_id_vec.push_back(std::stoi(value_point_str)); break;
+                case 1: mesh_l2.point_pos_x_vec.push_back(std::stod(value_point_str)); break;
             }
 
             // increment value count
@@ -79,7 +79,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2s.num_element++;
+        mesh_l2.num_element++;
 
         // convert line string into stringstream
         std::stringstream line_element_stream(line_element_str);
@@ -95,9 +95,9 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
             // store values in appropriate vector
             switch (value_element_num)
             {
-                case 0: mesh_l2s.element_id_vec.push_back(std::stoi(value_element_str)); break;
-                case 1: mesh_l2s.element_p0_id_vec.push_back(std::stod(value_element_str)); break;
-                case 2: mesh_l2s.element_p1_id_vec.push_back(std::stod(value_element_str)); break;
+                case 0: mesh_l2.element_id_vec.push_back(std::stoi(value_element_str)); break;
+                case 1: mesh_l2.element_p0_id_vec.push_back(std::stod(value_element_str)); break;
+                case 2: mesh_l2.element_p1_id_vec.push_back(std::stod(value_element_str)); break;
             }
 
             // increment value count
@@ -110,7 +110,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
     // close element file
     file_in_element_stream.close();
 
-    return mesh_l2s;
+    return mesh_l2;
 
 }
 

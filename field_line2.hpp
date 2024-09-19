@@ -1,30 +1,26 @@
-#ifndef VARIABLE_LINE2
-#define VARIABLE_LINE2
+#ifndef FIELD_LINE2
+#define FIELD_LINE2
 #include "container_mesh.hpp"
-#include "container_typedef.hpp"
 
-class VariableLine2
+class FieldLine2
 {
 
     public:
 
-    // mesh and data points
-    MeshLine2Struct* mesh_l2_ptr;
+    // variables
+    MeshLine2Struct *mesh_l2_ptr;
     VectorDouble point_u_vec;
 
-    // starting column in matrix equation
-    int start_col = -1;
-
     // default constructor
-    VariableLine2()
+    FieldLine2()
     {
 
     }
 
     // constructor
-    VariableLine2(MeshLine2Struct &mesh_l2_in, double u_init_in)
+    FieldLine2(MeshLine2Struct &mesh_l2_in, double u_init_in)
     {
-        
+
         // store mesh
         mesh_l2_ptr = &mesh_l2_in;
 
