@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "container_boundary.hpp"
+#include "boundary_line2.hpp"
 
 BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, std::string file_in_value_str, std::string file_in_config_str)
 {
@@ -30,7 +30,7 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
         }
 
         // count number of particles
-        boundary_l2.num_element_flux++;
+        boundary_l2.num_domain_element_flux++;
 
         // convert line string into stringstream
         std::stringstream line_flux_stream(line_flux_str);
@@ -46,8 +46,8 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
             // store values in appropriate vector
             switch (value_flux_num)
             {
-                case 0: boundary_l2.element_flux_id_vec.push_back(std::stoi(value_flux_str)); break;
-                case 1: boundary_l2.element_flux_pa_loc_vec.push_back(std::stoi(value_flux_str)); break;
+                case 0: boundary_l2.element_flux_global_id_vec.push_back(std::stoi(value_flux_str)); break;
+                case 1: boundary_l2.element_flux_pa_local_id_vec.push_back(std::stoi(value_flux_str)); break;
                 case 2: boundary_l2.element_flux_config_id_vec.push_back(std::stoi(value_flux_str)); break;
             }
 
@@ -82,7 +82,7 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
         }
 
         // count number of particles
-        boundary_l2.num_element_value++;
+        boundary_l2.num_domain_element_value++;
 
         // convert line string into stringstream
         std::stringstream line_value_stream(line_value_str);
@@ -98,8 +98,8 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
             // store values in appropriate vector
             switch (value_value_num)
             {
-                case 0: boundary_l2.element_value_id_vec.push_back(std::stoi(value_value_str)); break;
-                case 1: boundary_l2.element_value_pa_loc_vec.push_back(std::stoi(value_value_str)); break;
+                case 0: boundary_l2.element_value_global_id_vec.push_back(std::stoi(value_value_str)); break;
+                case 1: boundary_l2.element_value_pa_local_id_vec.push_back(std::stoi(value_value_str)); break;
                 case 2: boundary_l2.element_value_config_id_vec.push_back(std::stoi(value_value_str)); break;
             }
 

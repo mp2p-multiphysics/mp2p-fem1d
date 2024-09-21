@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "container_mesh.hpp"
+#include "mesh_line2.hpp"
 
 MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::string file_in_element_str)
 {
@@ -30,7 +30,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2.num_point++;
+        mesh_l2.num_domain_point++;
 
         // convert line string into stringstream
         std::stringstream line_point_stream(line_point_str);
@@ -46,7 +46,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
             // store values in appropriate vector
             switch (value_point_num)
             {
-                case 0: mesh_l2.point_id_vec.push_back(std::stoi(value_point_str)); break;
+                case 0: mesh_l2.point_global_id_vec.push_back(std::stoi(value_point_str)); break;
                 case 1: mesh_l2.point_pos_x_vec.push_back(std::stod(value_point_str)); break;
             }
 
@@ -79,7 +79,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2.num_element++;
+        mesh_l2.num_domain_element++;
 
         // convert line string into stringstream
         std::stringstream line_element_stream(line_element_str);
@@ -95,7 +95,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
             // store values in appropriate vector
             switch (value_element_num)
             {
-                case 0: mesh_l2.element_id_vec.push_back(std::stoi(value_element_str)); break;
+                case 0: mesh_l2.element_global_id_vec.push_back(std::stoi(value_element_str)); break;
                 case 1: mesh_l2.element_p0_id_vec.push_back(std::stod(value_element_str)); break;
                 case 2: mesh_l2.element_p1_id_vec.push_back(std::stod(value_element_str)); break;
             }

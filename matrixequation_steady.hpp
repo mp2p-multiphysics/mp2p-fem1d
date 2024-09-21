@@ -3,7 +3,7 @@
 #include <set>
 #include <vector>
 #include "Eigen/Eigen"
-#include "physics_solidheattransfer_steady_line2.hpp"
+#include "physics_solidheattransfer_steady.hpp"
 
 class MatrixEquationSteady
 {
@@ -11,7 +11,7 @@ class MatrixEquationSteady
     public:
 
     // physics
-    std::vector<PhysicsSolidHeatTransferSteadyLine2*> physics_ptr_vec;
+    std::vector<PhysicsSolidHeatTransferSteady*> physics_ptr_vec;
 
     // matrix equation variables
     Eigen::SparseMatrix<double> a_mat;
@@ -29,7 +29,7 @@ class MatrixEquationSteady
     }
 
     // constructor
-    MatrixEquationSteady(std::vector<PhysicsSolidHeatTransferSteadyLine2*> physics_ptr_vec_in)
+    MatrixEquationSteady(std::vector<PhysicsSolidHeatTransferSteady*> physics_ptr_vec_in)
     {
 
         // store vector of pointers to physics
@@ -46,15 +46,15 @@ class MatrixEquationSteady
         {
 
             // iterate through each variable
-            for (auto variable_ptr : physics_ptr->variable_ptr_vec)
+            for (auto variable_field_ptr : physics_ptr->variable_field_ptr_vec)
             {
                 
                 // assign starting column to variable if none yet
                 // increment assign_start_col by number of mesh points
-                if (variable_ptr->start_col == -1)
+                if (variable_field_ptr->start_col == -1)
                 {
-                    variable_ptr->start_col = assign_start_col;
-                    assign_start_col += variable_ptr->mesh_l2_ptr->num_point;
+                    variable_field_ptr->start_col = assign_start_col;
+                    assign_start_col += variable_field_ptr->num_field_point;
                 }
 
                 // assign starting row to physics
@@ -87,11 +87,31 @@ void MatrixEquationSteady::iterate_x_vec()
         physics_ptr->matrix_fill(a_mat, b_vec, x_vec);
     }
 
-    // solve the matrix equation
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    solver.analyzePattern(a_mat);
-    solver.factorize(a_mat);
-    x_vec = solver.solve(b_vec);
+    // DEBUG - PRINT A
+    std::ofstream file_amat_out("a_mat.csv");
+    for (int i = 0; i < num_equation; i++)
+    {
+        for (int j = 0; j < num_equation; j++)
+        {
+            
+            // last x value for given y
+            if (j == num_equation-1)
+            {
+                file_amat_out << a_mat.coeffRef(i, j) << "\n";
+                continue;
+            }
+
+            // output content of a matrix
+            file_amat_out << a_mat.coeffRef(i, j) << ",";
+
+        }
+    }
+
+//    // solve the matrix equation
+//    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+//    solver.analyzePattern(a_mat);
+//    solver.factorize(a_mat);
+//    x_vec = solver.solve(b_vec);
 
 }
 
