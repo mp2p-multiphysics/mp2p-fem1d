@@ -11,7 +11,7 @@ class VariableLine2
 
     // mesh and data points
     MeshLine2Struct* mesh_l2_ptr;
-    VectorDouble point_u_vec;
+    VectorDouble point_value_vec;
 
     // function
     void output_csv(std::string file_out_str);
@@ -32,7 +32,7 @@ class VariableLine2
         // populate initial values
         for (int indx_i = 0; indx_i < mesh_l2_ptr->num_domain_point; indx_i++)
         {
-            point_u_vec.push_back(u_init_in);
+            point_value_vec.push_back(u_init_in);
         }
 
     }
@@ -49,9 +49,9 @@ void VariableLine2::output_csv(std::string file_out_str)
     file_out_stream << "id,pos_x,value\n";
     for (int n = 0; n < mesh_l2_ptr->num_domain_point; n++)
     {
-        file_out_stream << mesh_l2_ptr->point_global_id_vec[n] << ",";
-        file_out_stream << mesh_l2_ptr->point_pos_x_vec[n] << ",";
-        file_out_stream << point_u_vec[n] << "\n";
+        file_out_stream << mesh_l2_ptr->point_gid_vec[n] << ",";
+        file_out_stream << mesh_l2_ptr->point_position_x_vec[n] << ",";
+        file_out_stream << point_value_vec[n] << "\n";
     }
 
 }

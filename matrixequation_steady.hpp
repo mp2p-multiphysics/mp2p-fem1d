@@ -21,6 +21,7 @@ class MatrixEquationSteady
 
     // functions
     void iterate_x_vec();
+    void store_x_vec();
 
     // default constructor
     MatrixEquationSteady()
@@ -85,33 +86,53 @@ void MatrixEquationSteady::iterate_x_vec()
     for (auto physics_ptr : physics_ptr_vec)
     {
         physics_ptr->matrix_fill(a_mat, b_vec, x_vec);
+
     }
 
-    // DEBUG - PRINT A
-    std::ofstream file_amat_out("a_mat.csv");
+//    // DEBUG - PRINT A
+//    std::ofstream file_amat_out("a_mat.csv");
+//    for (int i = 0; i < num_equation; i++)
+//    {
+//        for (int j = 0; j < num_equation; j++)
+//        {
+//            
+//            // last x value for given y
+//            if (j == num_equation-1)
+//            {
+//                file_amat_out << a_mat.coeffRef(i, j) << "\n";
+//                continue;
+//            }
+//
+//            // output content of a matrix
+//            file_amat_out << a_mat.coeffRef(i, j) << ",";
+//
+//        }
+//    }
+
+    // DEBUG - PRINT B
+    std::ofstream file_bvec_out("b_vec.csv");
     for (int i = 0; i < num_equation; i++)
     {
-        for (int j = 0; j < num_equation; j++)
-        {
-            
-            // last x value for given y
-            if (j == num_equation-1)
-            {
-                file_amat_out << a_mat.coeffRef(i, j) << "\n";
-                continue;
-            }
-
-            // output content of a matrix
-            file_amat_out << a_mat.coeffRef(i, j) << ",";
-
-        }
+        file_bvec_out << b_vec.coeffRef(i) << "\n";
     }
 
-//    // solve the matrix equation
-//    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-//    solver.analyzePattern(a_mat);
-//    solver.factorize(a_mat);
-//    x_vec = solver.solve(b_vec);
+    // solve the matrix equation
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    solver.analyzePattern(a_mat);
+    solver.factorize(a_mat);
+    x_vec = solver.solve(b_vec);
+
+}
+
+
+void MatrixEquationSteady::store_x_vec()
+{
+
+    // transfer solutions from x_vec to variables
+    for (auto physics_ptr : physics_ptr_vec)
+    {
+        physics_ptr->matrix_store(x_vec);
+    }
 
 }
 

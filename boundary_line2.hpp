@@ -14,16 +14,19 @@ struct BoundaryConfigLine2Struct
 struct BoundaryLine2Struct
 {
 
+    // gid - global ID
+    // lid - local ID
+
     // flux boundary condition data
     int num_domain_element_flux = 0;
-    VectorInt element_flux_global_id_vec;
-    VectorInt element_flux_pa_local_id_vec;
+    VectorInt element_flux_gid_vec;
+    VectorInt element_flux_pa_lid_vec;
     VectorInt element_flux_config_id_vec;
-    
+
     // value boundary condition data
     int num_domain_element_value = 0;
-    VectorInt element_value_global_id_vec;
-    VectorInt element_value_pa_local_id_vec;
+    VectorInt element_value_gid_vec;
+    VectorInt element_value_pa_lid_vec;
     VectorInt element_value_config_id_vec;
 
     // boundary condition data

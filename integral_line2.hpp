@@ -54,8 +54,8 @@ void IntegralLine2::evaluate_Ni_derivative()
     const double M_1_SQRT_3 = 1./sqrt(3);
     double a_arr[2] = {-M_1_SQRT_3, +M_1_SQRT_3};
 
-    // iterate for each domain element (indx_m)
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++)
+    // iterate for each domain element
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++)
     {
 
         // initialize
@@ -63,13 +63,17 @@ void IntegralLine2::evaluate_Ni_derivative()
         Vector2D N_part_ml_vec;
         Vector2D derivative_N_x_part_ml_vec;
 
-        // get global id of points around element
-        int n0 = mesh_l2_ptr->element_p0_id_vec[indx_m];
-        int n1 = mesh_l2_ptr->element_p1_id_vec[indx_m];
+        // get global ID of points around element
+        int p0_gid = mesh_l2_ptr->element_p0_gid_vec[e_did];
+        int p1_gid = mesh_l2_ptr->element_p1_gid_vec[e_did];
 
-        // unpack x values
-        double x0 = mesh_l2_ptr->point_pos_x_vec[n0];
-        double x1 = mesh_l2_ptr->point_pos_x_vec[n1];
+        // get local ID of points
+        int p0_did = mesh_l2_ptr->point_gid_to_did_map[p0_gid];
+        int p1_did = mesh_l2_ptr->point_gid_to_did_map[p1_gid];
+
+        // get x values of points
+        double x0 = mesh_l2_ptr->point_position_x_vec[p0_did];
+        double x1 = mesh_l2_ptr->point_position_x_vec[p1_did];
 
         // iterate for each integration point (indx_l)
         for (int indx_l = 0; indx_l < 2; indx_l++)
@@ -138,7 +142,7 @@ void IntegralLine2::evaluate_integral_Ni_line2()
 {
     
     // iterate for each domain element
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++){  
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++){  
     
     // iterate for each test function combination
     Vector1D integral_part_i_vec;
@@ -148,7 +152,7 @@ void IntegralLine2::evaluate_integral_Ni_line2()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[indx_m][indx_l] * N_vec[indx_m][indx_l][indx_i];
+            integral_value += jacobian_determinant_vec[e_did][indx_l] * N_vec[e_did][indx_l][indx_i];
         }
         integral_part_i_vec.push_back(integral_value);
     
@@ -163,7 +167,7 @@ void IntegralLine2::evaluate_integral_derivative_Ni_line2_x()
 {
     
     // iterate for each domain element
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++){  
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++){  
     
     // iterate for each test function combination
     Vector1D integral_part_i_vec;
@@ -173,7 +177,7 @@ void IntegralLine2::evaluate_integral_derivative_Ni_line2_x()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[indx_m][indx_l] * derivative_N_x_vec[indx_m][indx_l][indx_i];
+            integral_value += jacobian_determinant_vec[e_did][indx_l] * derivative_N_x_vec[e_did][indx_l][indx_i];
         }
         integral_part_i_vec.push_back(integral_value);
     
@@ -188,7 +192,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2()
 {
     
     // iterate for each domain element
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++){  
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -200,7 +204,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[indx_m][indx_l] * N_vec[indx_m][indx_l][indx_i] * N_vec[indx_m][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[e_did][indx_l] * N_vec[e_did][indx_l][indx_i] * N_vec[e_did][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     
@@ -217,7 +221,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_derivative_Nj_line2_x()
 {
     
     // iterate for each domain element
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++){  
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -229,7 +233,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_derivative_Nj_line2_x()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[indx_m][indx_l] * N_vec[indx_m][indx_l][indx_i] * derivative_N_x_vec[indx_m][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[e_did][indx_l] * N_vec[e_did][indx_l][indx_i] * derivative_N_x_vec[e_did][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     
@@ -246,7 +250,7 @@ void IntegralLine2::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
 {
     
     // iterate for each domain element
-    for (int indx_m = 0; indx_m < mesh_l2_ptr->num_domain_element; indx_m++){  
+    for (int e_did = 0; e_did < mesh_l2_ptr->num_domain_element; e_did++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -258,7 +262,7 @@ void IntegralLine2::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[indx_m][indx_l] * derivative_N_x_vec[indx_m][indx_l][indx_i] * derivative_N_x_vec[indx_m][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[e_did][indx_l] * derivative_N_x_vec[e_did][indx_l][indx_i] * derivative_N_x_vec[e_did][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     

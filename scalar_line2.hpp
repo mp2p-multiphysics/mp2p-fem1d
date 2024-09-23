@@ -9,7 +9,7 @@ class ScalarLine2
 
     // variables
     MeshLine2Struct *mesh_l2_ptr;
-    VectorDouble point_u_vec;
+    VectorDouble point_value_vec;
 
     // default constructor
     ScalarLine2()
@@ -27,7 +27,7 @@ class ScalarLine2
         // populate initial values
         for (int indx_i = 0; indx_i < mesh_l2_ptr->num_domain_point; indx_i++)
         {
-            point_u_vec.push_back(u_init_in);
+            point_value_vec.push_back(u_init_in);
         }
 
     }

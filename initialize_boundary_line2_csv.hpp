@@ -46,8 +46,8 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
             // store values in appropriate vector
             switch (value_flux_num)
             {
-                case 0: boundary_l2.element_flux_global_id_vec.push_back(std::stoi(value_flux_str)); break;
-                case 1: boundary_l2.element_flux_pa_local_id_vec.push_back(std::stoi(value_flux_str)); break;
+                case 0: boundary_l2.element_flux_gid_vec.push_back(std::stoi(value_flux_str)); break;
+                case 1: boundary_l2.element_flux_pa_lid_vec.push_back(std::stoi(value_flux_str)); break;
                 case 2: boundary_l2.element_flux_config_id_vec.push_back(std::stoi(value_flux_str)); break;
             }
 
@@ -98,8 +98,8 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
             // store values in appropriate vector
             switch (value_value_num)
             {
-                case 0: boundary_l2.element_value_global_id_vec.push_back(std::stoi(value_value_str)); break;
-                case 1: boundary_l2.element_value_pa_local_id_vec.push_back(std::stoi(value_value_str)); break;
+                case 0: boundary_l2.element_value_gid_vec.push_back(std::stoi(value_value_str)); break;
+                case 1: boundary_l2.element_value_pa_lid_vec.push_back(std::stoi(value_value_str)); break;
                 case 2: boundary_l2.element_value_config_id_vec.push_back(std::stoi(value_value_str)); break;
             }
 
