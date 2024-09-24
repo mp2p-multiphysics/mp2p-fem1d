@@ -11,6 +11,8 @@ class MeshPhysicsGroup
     // variables
     int num_domain = 0;
     std::vector<MeshLine2Struct*> mesh_ptr_vec;
+    int num_points_physics = 0;
+    
 
     // functions
 

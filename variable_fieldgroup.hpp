@@ -10,19 +10,19 @@ class VariableFieldGroup
 
     public:
 
-    // variables
-    int num_field_point = 0;
-    std::set<int> point_gid_set;  // set of global IDs
-    std::vector<VariableLine2*> variable_ptr_vec;  // vector of variables
-    std::unordered_map<MeshLine2Struct*, VariableLine2*> variable_ptr_map;
-    std::unordered_map<int, int> point_gid_to_fid_map;  // key: global point id; value: field point id
-    VectorDouble point_value_vec;
+    // values in variable group
+    int num_point_field = 0;  // number of points in group
 
+    // point IDs
+    VectorInt point_gid_vec;  // key: field ID; value: global ID
+    MapIntInt point_gid_to_fid_map;  // key: global ID; value: field ID
+
+    // variables and meshes
+    std::vector<VariableLine2*> variable_ptr_vec;  // vector of variables
+    std::unordered_map<MeshLine2Struct*, VariableLine2*> mesh_to_variable_ptr_map;  // key: mesh; value: variable
+   
     // starting column of variables in matrix equation
     int start_col = -1;
-
-    // functions
-    void output_csv(std::string file_out_str);
 
     // default constructor
     VariableFieldGroup()
@@ -37,6 +37,17 @@ class VariableFieldGroup
         // store vector of variables
         variable_ptr_vec = variable_ptr_vec_in;
 
+        // map mesh to variables
+        for (auto variable_ptr : variable_ptr_vec)
+        {
+            mesh_to_variable_ptr_map[variable_ptr->mesh_l2_ptr] = variable_ptr;
+        }
+
+        // get point IDs
+
+        // initialize set of global IDs
+        std::set<int> point_gid_set;  
+
         // iterate through each variable and get set of global IDs
         for (auto variable_ptr : variable_ptr_vec)
         {
@@ -47,7 +58,7 @@ class VariableFieldGroup
         }
 
         // initialize field ID
-        int point_field_id = 0;
+        int point_fid = 0;
 
         // iterate through each global ID and assign a field ID
         for (auto point_gid : point_gid_set)
@@ -59,40 +70,20 @@ class VariableFieldGroup
                 continue;
             }
 
-            // assign field ID and increment ID counter
-            point_gid_to_fid_map[point_gid] = point_field_id;
-            point_field_id++;
+            // map global ID to field ID and vice versa
+            point_gid_to_fid_map[point_gid] = point_fid;
+            point_gid_vec.push_back(point_gid);
+            
+            // increment field ID
+            point_fid++;
 
         }
 
-        // number of field points = highest field id
-        num_field_point = point_field_id;
-
-        // iterate through each vector
-        // map mesh to each vector
-        for (auto variable_ptr : variable_ptr_vec)
-        {
-            variable_ptr_map[variable_ptr->mesh_l2_ptr] = variable_ptr;
-        }
+        // total number of field points
+        num_point_field = point_fid;
 
     }
 
 };
-
-void VariableFieldGroup::output_csv(std::string file_out_str)
-{
-
-    // initialize file stream
-    std::ofstream file_out_stream(file_out_str);
-
-    // write to file
-    file_out_stream << "id,value\n";
-    for (auto &point_gid : point_gid_set)
-    {
-        file_out_stream << point_gid << ",";
-        file_out_stream << point_value_vec[point_gid_to_fid_map[point_gid]] << "\n";
-    }
-
-}
 
 #endif

@@ -30,7 +30,7 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
         }
 
         // count number of particles
-        boundary_l2.num_domain_element_flux++;
+        boundary_l2.num_element_flux_domain++;
 
         // convert line string into stringstream
         std::stringstream line_flux_stream(line_flux_str);
@@ -82,7 +82,7 @@ BoundaryLine2Struct initialize_boundary_line2_csv(std::string file_in_flux_str, 
         }
 
         // count number of particles
-        boundary_l2.num_domain_element_value++;
+        boundary_l2.num_element_value_domain++;
 
         // convert line string into stringstream
         std::stringstream line_value_stream(line_value_str);

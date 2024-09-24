@@ -30,7 +30,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2.num_domain_point++;
+        mesh_l2.num_point_domain++;
 
         // convert line string into stringstream
         std::stringstream line_point_stream(line_point_str);
@@ -79,7 +79,7 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
         }
 
         // count number of particles
-        mesh_l2.num_domain_element++;
+        mesh_l2.num_element_domain++;
 
         // convert line string into stringstream
         std::stringstream line_element_stream(line_element_str);
@@ -111,17 +111,17 @@ MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::st
     file_in_element_stream.close();
 
     // generate map of global to domain ID for points
-    for (int p_did = 0; p_did < mesh_l2.num_domain_point; p_did++)
+    for (int point_did = 0; point_did < mesh_l2.num_point_domain; point_did++)
     {
-        int p_gid = mesh_l2.point_gid_vec[p_did];
-        mesh_l2.point_gid_to_did_map[p_gid] = p_did;
+        int point_gid = mesh_l2.point_gid_vec[point_did];
+        mesh_l2.point_gid_to_did_map[point_gid] = point_did;
     }
 
     // generate map of global to domain ID for elements
-    for (int e_did = 0; e_did < mesh_l2.num_domain_point; e_did++)
+    for (int element_did = 0; element_did < mesh_l2.num_element_domain; element_did++)
     {
-        int e_gid = mesh_l2.element_gid_vec[e_did];
-        mesh_l2.element_gid_to_did_map[e_gid] = e_did;
+        int element_gid = mesh_l2.element_gid_vec[element_did];
+        mesh_l2.element_gid_to_did_map[element_gid] = element_did;
     }
 
     return mesh_l2;

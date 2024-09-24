@@ -15,6 +15,7 @@ class PhysicsSolidHeatTransferSteady
     public:
 
     // physics groups
+    int num_domain_physics = 0;
     MeshPhysicsGroup *mesh_physics_ptr;
     BoundaryPhysicsGroup *boundary_physics_ptr;
     IntegralPhysicsGroup *integral_physics_ptr;
@@ -32,7 +33,6 @@ class PhysicsSolidHeatTransferSteady
 
     // functions
     void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
-    void matrix_store(Eigen::VectorXd &x_vec);
 
     // default constructor
     PhysicsSolidHeatTransferSteady()
@@ -49,11 +49,12 @@ class PhysicsSolidHeatTransferSteady
     {
         
         // store physics groups
+        num_domain_physics = mesh_physics_ptr->num_domain;
         mesh_physics_ptr = &mesh_physics_in;
         boundary_physics_ptr = &boundary_physics_in;
         integral_physics_ptr = &integral_physics_in;
 
-        // store field groups
+        // store field 
         temperature_field_ptr = &temperature_field_in;
         thermalconductivity_field_ptr = &thermalconductivity_field_in;
         heatgeneration_field_ptr = &heatgeneration_field_in;
@@ -108,29 +109,6 @@ void PhysicsSolidHeatTransferSteady::matrix_fill
 
 }
 
-void PhysicsSolidHeatTransferSteady::matrix_store
-(
-    Eigen::VectorXd &x_vec
-)
-{
-
-    // iterate through each domain covered by the mesh
-    for (int indx_d = 0; indx_d < mesh_physics_ptr->num_domain; indx_d++)
-    {
-
-        // subset the mesh
-        MeshLine2Struct *mesh_ptr = mesh_physics_ptr->mesh_ptr_vec[indx_d];
-
-        // get variable fields
-        VariableLine2 *temperature_ptr = temperature_field_ptr->variable_ptr_map[mesh_ptr];
-
-        // determine matrix coefficients for the domain
-        matrix_store_domain(x_vec, mesh_ptr, temperature_ptr);
-
-    }
-
-}
-
 void PhysicsSolidHeatTransferSteady::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
@@ -140,33 +118,33 @@ void PhysicsSolidHeatTransferSteady::matrix_fill_domain
 {
 
     // iterate for each domain element
-    for (int gid_e = 0; gid_e < mesh_ptr->num_domain_element; gid_e++)
+    for (int element_did = 0; element_did < mesh_ptr->num_element_domain; element_did++)
     {
 
         // get global ID of points around element
-        int gid_p0 = mesh_ptr->element_p0_gid_vec[gid_e];
-        int gid_p1 = mesh_ptr->element_p1_gid_vec[gid_e];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[element_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[element_did];
 
         // get domain ID of points
         // used for getting properties and integrals
-        int did_p0 = mesh_ptr->point_gid_to_did_map[gid_p0];
-        int did_p1 = mesh_ptr->point_gid_to_did_map[gid_p1];
-        int did_arr[2] = {did_p0, did_p1};
+        int p0_did = mesh_ptr->point_gid_to_did_map[p0_gid];
+        int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
+        int did_arr[2] = {p0_did, p1_did};
 
         // get field ID of points
         // used for getting matrix rows and columns
-        int fid_p0 = temperature_field_ptr->point_gid_to_fid_map[gid_p0];
-        int fid_p1 = temperature_field_ptr->point_gid_to_fid_map[gid_p1];
-        int fid_arr[2] = {fid_p0, fid_p1};
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int fid_arr[2] = {p0_fid, p1_fid};
 
         // get thermal conductivity of points around element
-        double thermcond_p0 = thermalconductivity_ptr->point_value_vec[did_p0];
-        double thermcond_p1 = thermalconductivity_ptr->point_value_vec[did_p1];
+        double thermcond_p0 = thermalconductivity_ptr->point_value_vec[p0_did];
+        double thermcond_p1 = thermalconductivity_ptr->point_value_vec[p1_did];
         double thermcond_arr[2] = {thermcond_p0, thermcond_p1};
 
         // get heat generation of points around element
-        double heatgen_p0 = heatgeneration_ptr->point_value_vec[did_p0];
-        double heatgen_p1 = heatgeneration_ptr->point_value_vec[did_p1];
+        double heatgen_p0 = heatgeneration_ptr->point_value_vec[p0_did];
+        double heatgen_p1 = heatgeneration_ptr->point_value_vec[p1_did];
         double heatgen_arr[2] = {heatgen_p0, heatgen_p1};
 
         // calculate a_mat coefficients
@@ -178,85 +156,85 @@ void PhysicsSolidHeatTransferSteady::matrix_fill_domain
         for (int indx_j = 0; indx_j < 2; indx_j++){
             int mat_row = start_row + fid_arr[indx_i];
             int mat_col = temperature_field_ptr->start_col + fid_arr[indx_j];
-            a_mat.coeffRef(mat_row, mat_col) += thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[gid_e][indx_i][indx_j];
+            a_mat.coeffRef(mat_row, mat_col) += thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j];
         }}
 
         // calculate b_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[gid_e][indx_i];
+            b_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
         }
 
     }
 
     // iterate for each flux boundary element
-    for (int indx_k = 0; indx_k < boundary_ptr->num_domain_element_flux; indx_k++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_flux_domain; boundary_id++)
     {
 
         // get global ID of element
-        int gid_ea = boundary_ptr->element_flux_gid_vec[indx_k];
+        int ea_gid = boundary_ptr->element_flux_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int did_ea = mesh_ptr->element_gid_to_did_map[gid_ea];
+        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
 
         // get global ID of points
-        int gid_p0 = mesh_ptr->element_p0_gid_vec[did_ea];
-        int gid_p1 = mesh_ptr->element_p1_gid_vec[did_ea];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get field ID of points
         // used for getting matrix rows and columns
-        int fid_p0 = temperature_field_ptr->point_gid_to_fid_map[gid_p0];
-        int fid_p1 = temperature_field_ptr->point_gid_to_fid_map[gid_p1];
-        int fid_arr[2] = {fid_p0, fid_p1};
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int fid_arr[2] = {p0_fid, p1_fid};
 
         // get local ID of point where boundary is applied
-        int lid_pa = boundary_ptr->element_flux_pa_lid_vec[indx_k];  // 0 or 1
+        int ea_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
         // identify boundary type
-        int config_id = boundary_ptr->element_flux_config_id_vec[indx_k];
+        int config_id = boundary_ptr->element_flux_config_id_vec[boundary_id];
         BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundary_config_vec[config_id];
 
         // apply boundary condition
         if (bcl2.boundary_type_str == "neumann")
         {
             // add to b_vec
-            int mat_row = start_row + fid_arr[lid_pa];
+            int mat_row = start_row + fid_arr[ea_lid];
             b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
         }
 
     }
 
     // clear rows with value boundary elements
-    for (int indx_k = 0; indx_k < boundary_ptr->num_domain_element_value; indx_k++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_value_domain; boundary_id++)
     {
 
         // get global ID of element
-        int gid_ea = boundary_ptr->element_value_gid_vec[indx_k];
+        int ea_gid = boundary_ptr->element_value_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int did_ea = mesh_ptr->element_gid_to_did_map[gid_ea];
+        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
 
         // get global ID of points
-        int gid_p0 = mesh_ptr->element_p0_gid_vec[did_ea];
-        int gid_p1 = mesh_ptr->element_p1_gid_vec[did_ea];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get field ID of points
         // used for getting matrix rows and columns
-        int fid_p0 = temperature_field_ptr->point_gid_to_fid_map[gid_p0];
-        int fid_p1 = temperature_field_ptr->point_gid_to_fid_map[gid_p1];
-        int fid_arr[2] = {fid_p0, fid_p1};
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int fid_arr[2] = {p0_fid, p1_fid};
 
         // get local ID of point where boundary is applied
-        int lid_pa = boundary_ptr->element_value_pa_lid_vec[indx_k];  // 0 or 1
+        int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
 
         // erase entire row
         // -1 values indicate invalid points
-        if (lid_pa != -1)
+        if (ea_lid != -1)
         {
-            int mat_row = start_row + fid_arr[lid_pa];
+            int mat_row = start_row + fid_arr[ea_lid];
             a_mat.row(mat_row) *= 0.;
             b_vec.coeffRef(mat_row) = 0.;
         }
@@ -264,31 +242,31 @@ void PhysicsSolidHeatTransferSteady::matrix_fill_domain
     }
 
     // iterate for each value boundary element
-    for (int indx_k = 0; indx_k < boundary_ptr->num_domain_element_value; indx_k++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_value_domain; boundary_id++)
     {
 
         // get global ID of element
-        int gid_ea = boundary_ptr->element_value_gid_vec[indx_k];
+        int ea_gid = boundary_ptr->element_value_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int did_ea = mesh_ptr->element_gid_to_did_map[gid_ea];
+        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
 
         // get global ID of points
-        int gid_p0 = mesh_ptr->element_p0_gid_vec[did_ea];
-        int gid_p1 = mesh_ptr->element_p1_gid_vec[did_ea];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get field ID of points
         // used for getting matrix rows and columns
-        int fid_p0 = temperature_field_ptr->point_gid_to_fid_map[gid_p0];
-        int fid_p1 = temperature_field_ptr->point_gid_to_fid_map[gid_p1];
-        int fid_arr[2] = {fid_p0, fid_p1};
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int fid_arr[2] = {p0_fid, p1_fid};
 
         // get local ID of point where boundary is applied
-        int lid_pa = boundary_ptr->element_value_pa_lid_vec[indx_k];  // 0 or 1
+        int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
         
         // identify boundary type
-        int config_id = boundary_ptr->element_value_config_id_vec[indx_k];
+        int config_id = boundary_ptr->element_value_config_id_vec[boundary_id];
         BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundary_config_vec[config_id];
 
         // apply boundary condition
@@ -297,36 +275,15 @@ void PhysicsSolidHeatTransferSteady::matrix_fill_domain
 
             // set a_mat and b_vec
             // -1 values indicate invalid points
-            int mat_row = start_row + fid_arr[lid_pa];
-            int mat_col = temperature_field_ptr->start_col + fid_arr[lid_pa];
-            if (lid_pa != -1)
+            int mat_row = start_row + fid_arr[ea_lid];
+            int mat_col = temperature_field_ptr->start_col + fid_arr[ea_lid];
+            if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
                 b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
             }
 
         }
-
-    }
-
-}
-
-void PhysicsSolidHeatTransferSteady::matrix_store_domain
-(
-    Eigen::VectorXd &x_vec, MeshLine2Struct *mesh_ptr, VariableLine2 *temperature_ptr
-)
-{
-
-    // iterate for each temperature value
-    for (int fid_p = 0; fid_p < temperature_field_ptr->num_field_point; fid_p++)
-    {
-        
-        // get temperature from x vector
-        int mat_row = temperature_field_ptr->start_col + fid_p;
-        double temperature_value = x_vec.coeffRef(mat_row);
-
-        // store in variable
-        temperature_field_ptr->point_value_vec.push_back(temperature_value);
 
     }
 
