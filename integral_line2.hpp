@@ -51,6 +51,7 @@ void IntegralLine2::evaluate_Ni_derivative()
 {
 
     // integration points
+    // dimensionless coordinates if element is scaled to [-1, 1]
     const double M_1_SQRT_3 = 1./sqrt(3);
     double a_arr[2] = {-M_1_SQRT_3, +M_1_SQRT_3};
 
@@ -67,7 +68,7 @@ void IntegralLine2::evaluate_Ni_derivative()
         int p0_gid = mesh_l2_ptr->element_p0_gid_vec[element_did];
         int p1_gid = mesh_l2_ptr->element_p1_gid_vec[element_did];
 
-        // get local ID of points
+        // get domain ID of points
         int p0_did = mesh_l2_ptr->point_gid_to_did_map[p0_gid];
         int p1_did = mesh_l2_ptr->point_gid_to_did_map[p1_gid];
 

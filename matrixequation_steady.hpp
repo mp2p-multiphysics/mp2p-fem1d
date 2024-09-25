@@ -13,7 +13,7 @@ class MatrixEquationSteady
 
     // vector of physics
     std::vector<PhysicsSolidHeatTransferSteady*> physics_ptr_vec;
-    std::set<VariableFieldGroup*> variable_field_ptr_set;
+    std::vector<VariableFieldGroup*> variable_field_ptr_vec;
 
     // matrix equation variables
     Eigen::SparseMatrix<double> a_mat;
@@ -39,14 +39,14 @@ class MatrixEquationSteady
         physics_ptr_vec = physics_ptr_vec_in;
 
         // generate starting rows and columns
+        // assign starting row in matrix to test functions (physics)
+        // assign starting column in matrix to variables
 
         // initialize starting rows and columns
         int assign_start_row = 0;
         int assign_start_col = 0;
 
         // iterate through each physics
-        // assign starting row in matrix to physics
-        // assign starting column in matrix to variables
         for (auto physics_ptr : physics_ptr_vec)
         {
 
@@ -74,6 +74,11 @@ class MatrixEquationSteady
         // get number of linear equations (total number of mesh points)
         num_equation = assign_start_row;
 
+        // get vector of variable fields
+        
+        // initialize set of variable fields
+        std::set<VariableFieldGroup*> variable_field_ptr_set;
+
         // iterate through each physics
         for (auto physics_ptr : physics_ptr_vec)
         {
@@ -89,10 +94,48 @@ class MatrixEquationSteady
 
         }
 
+        // convert to vector
+        variable_field_ptr_vec = std::vector<VariableFieldGroup*>(variable_field_ptr_set.begin(), variable_field_ptr_set.end());
+
         // initialize matrix equation variables
         a_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
         b_vec = Eigen::VectorXd::Zero(num_equation);
-        x_vec = Eigen::VectorXd::Zero(num_equation);  // edit later to use initial values
+        x_vec = Eigen::VectorXd::Zero(num_equation);
+        
+        // populate x_vec with initial values
+
+        // iterate through each variable field
+        for (auto variable_field_ptr : variable_field_ptr_vec)
+        {
+
+            // get starting row
+            // note: column in a_mat = row in x_vec
+            int start_row = variable_field_ptr->start_col;
+
+            // iterate through each variable
+            for (auto variable_ptr : variable_field_ptr->variable_ptr_vec)
+            {
+
+                // iterate through each global ID
+                for (auto point_gid : variable_ptr->mesh_l2_ptr->point_gid_vec)
+                {
+
+                    // get domain and field IDs
+                    int point_fid = variable_field_ptr->point_gid_to_fid_map[point_gid];
+                    int point_did = variable_ptr->mesh_l2_ptr->point_gid_to_did_map[point_gid];
+
+                    // get value from variable
+                    double value = variable_ptr->point_value_vec[point_did];
+
+                    // store value in x_vec
+                    int vec_row = start_row + point_fid;
+                    x_vec.coeffRef(vec_row) = value;
+
+                }
+
+            }
+
+        }
 
     }
 
@@ -120,7 +163,7 @@ void MatrixEquationSteady::store_solution()
 {
 
     // iterate through each variable field
-    for (auto variable_field_ptr : variable_field_ptr_set)
+    for (auto variable_field_ptr : variable_field_ptr_vec)
     {
 
         // get starting row

@@ -10,8 +10,8 @@ class VariableFieldGroup
 
     public:
 
-    // values in variable group
-    int num_point_field = 0;  // number of points in group
+    // number of unique points in field
+    int num_point_field = 0;
 
     // point IDs
     VectorInt point_gid_vec;  // key: field ID; value: global ID
@@ -43,7 +43,8 @@ class VariableFieldGroup
             mesh_to_variable_ptr_map[variable_ptr->mesh_l2_ptr] = variable_ptr;
         }
 
-        // get point IDs
+        // get set of global IDs
+        // map global IDs and field IDs
 
         // initialize set of global IDs
         std::set<int> point_gid_set;  

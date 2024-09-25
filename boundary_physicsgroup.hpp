@@ -8,10 +8,8 @@ class BoundaryPhysicsGroup
 
     public:
 
-    // variables
+    // vector with boundaries in group
     std::vector<BoundaryLine2Struct*> boundary_ptr_vec;
-
-    // functions
 
     // default constructor
     BoundaryPhysicsGroup()
