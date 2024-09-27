@@ -4,12 +4,13 @@
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
 #include "container_typedef.hpp"
-#include "mesh_physicsgroup.hpp"
-#include "scalar_fieldgroup.hpp"
 #include "integral_physicsgroup.hpp"
+#include "mesh_physicsgroup.hpp"
+#include "physics_base_steady.hpp"
+#include "scalar_fieldgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsSolidHeatTransferSteady
+class PhysicsSolidHeatTransferSteady : public PhysicsBaseSteady
 {
 
     public:
@@ -32,6 +33,8 @@ class PhysicsSolidHeatTransferSteady
 
     // functions
     void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
+    void set_start_row(int start_row_in);
+    std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
     PhysicsSolidHeatTransferSteady()
@@ -285,6 +288,16 @@ void PhysicsSolidHeatTransferSteady::matrix_fill_domain
 
     }
 
+}
+
+void PhysicsSolidHeatTransferSteady::set_start_row(int start_row_in)
+{
+    start_row = start_row_in;
+}
+
+std::vector<VariableFieldGroup*> PhysicsSolidHeatTransferSteady::get_variable_field_ptr_vec()
+{
+    return variable_field_ptr_vec;
 }
 
 #endif

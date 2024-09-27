@@ -3,7 +3,7 @@
 #include <set>
 #include <vector>
 #include "Eigen/Eigen"
-#include "physics_solidheattransfer_steady.hpp"
+#include "physics_base_steady.hpp"
 #include "variable_fieldgroup.hpp"
 
 class MatrixEquationSteady
@@ -12,7 +12,7 @@ class MatrixEquationSteady
     public:
 
     // vector of physics
-    std::vector<PhysicsSolidHeatTransferSteady*> physics_ptr_vec;
+    std::vector<PhysicsBaseSteady*> physics_ptr_vec;
     std::vector<VariableFieldGroup*> variable_field_ptr_vec;
 
     // matrix equation variables
@@ -32,7 +32,7 @@ class MatrixEquationSteady
     }
 
     // constructor
-    MatrixEquationSteady(std::vector<PhysicsSolidHeatTransferSteady*> physics_ptr_vec_in)
+    MatrixEquationSteady(std::vector<PhysicsBaseSteady*> physics_ptr_vec_in)
     {
 
         // store vector of pointers to physics
@@ -51,7 +51,7 @@ class MatrixEquationSteady
         {
 
             // iterate through each variable field
-            for (auto variable_field_ptr : physics_ptr->variable_field_ptr_vec)
+            for (auto variable_field_ptr : physics_ptr->get_variable_field_ptr_vec())
             {
                 
                 // assign starting column to variable if none yet
@@ -64,7 +64,7 @@ class MatrixEquationSteady
 
                 // assign starting row to physics
                 // increment assign_start_row by number of new mesh points
-                physics_ptr->start_row = assign_start_row;
+                physics_ptr->set_start_row(assign_start_row);
                 assign_start_row = assign_start_col;
 
             }
@@ -84,7 +84,7 @@ class MatrixEquationSteady
         {
 
             // iterate through each variable field
-            for (auto variable_field_ptr : physics_ptr->variable_field_ptr_vec)
+            for (auto variable_field_ptr : physics_ptr->get_variable_field_ptr_vec())
             {
                 
                 // store variable field
