@@ -1,5 +1,5 @@
-#ifndef PHYSICS_CONVECTIONDIFFUSIONLIQUID_STEADY_LINE2
-#define PHYSICS_CONVECTIONDIFFUSIONLIQUID_STEADY_LINE2
+#ifndef PHYSICS_HEATTRANSFER_STEADY_LINE2
+#define PHYSICS_HEATTRANSFER_STEADY_LINE2
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
@@ -10,7 +10,7 @@
 #include "scalar_fieldgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsConvectionDiffusionLiquidSteady : public PhysicsBaseSteady
+class PhysicsHeatTransferSteady : public PhysicsBaseSteady
 {
 
     public:
@@ -21,10 +21,9 @@ class PhysicsConvectionDiffusionLiquidSteady : public PhysicsBaseSteady
     IntegralPhysicsGroup *integral_physics_ptr;
 
     // field groups
-    VariableFieldGroup *concentration_field_ptr;
-    ScalarFieldGroup *diffusioncoefficient_field_ptr;
-    ScalarFieldGroup *velocity_x_field_ptr;
-    ScalarFieldGroup *speciesgeneration_field_ptr;
+    VariableFieldGroup *temperature_field_ptr;
+    ScalarFieldGroup *thermalconductivity_field_ptr;
+    ScalarFieldGroup *heatgeneration_field_ptr;
 
     // vector of variable fields
     std::vector<VariableFieldGroup*> variable_field_ptr_vec;
@@ -38,17 +37,16 @@ class PhysicsConvectionDiffusionLiquidSteady : public PhysicsBaseSteady
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
-    PhysicsConvectionDiffusionLiquidSteady()
+    PhysicsHeatTransferSteady()
     {
 
     }
 
     // constructor
-    PhysicsConvectionDiffusionLiquidSteady
+    PhysicsHeatTransferSteady
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &concentration_field_in,
-        ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &velocity_x_field_in, ScalarFieldGroup &speciesgeneration_field_in
+        VariableFieldGroup &temperature_field_in, ScalarFieldGroup &thermalconductivity_field_in, ScalarFieldGroup &heatgeneration_field_in
     )
     {
         
@@ -57,19 +55,17 @@ class PhysicsConvectionDiffusionLiquidSteady : public PhysicsBaseSteady
         boundary_physics_ptr = &boundary_physics_in;
         integral_physics_ptr = &integral_physics_in;
 
-        // store field
-        concentration_field_ptr = &concentration_field_in;
-        diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
-        velocity_x_field_ptr = &velocity_x_field_in;
-        speciesgeneration_field_ptr = &speciesgeneration_field_in;
+        // store field 
+        temperature_field_ptr = &temperature_field_in;
+        thermalconductivity_field_ptr = &thermalconductivity_field_in;
+        heatgeneration_field_ptr = &heatgeneration_field_in;
 
         // vector of variable fields 
-        variable_field_ptr_vec = {concentration_field_ptr};
+        variable_field_ptr_vec = {temperature_field_ptr};
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
         integral_physics_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
-        integral_physics_ptr->evaluate_integral_Ni_line2_derivative_Nj_line2_x();
         integral_physics_ptr->evaluate_integral_Ni_line2();
 
     }
@@ -79,12 +75,12 @@ class PhysicsConvectionDiffusionLiquidSteady : public PhysicsBaseSteady
     (
         Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *speciesgeneration_ptr
+        ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
     );
 
 };
 
-void PhysicsConvectionDiffusionLiquidSteady::matrix_fill
+void PhysicsHeatTransferSteady::matrix_fill
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
 )
@@ -100,22 +96,21 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill
         IntegralLine2 *integral_ptr = integral_physics_ptr->integral_ptr_vec[indx_d];
 
         // get scalar fields
-        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *velocity_x_ptr = velocity_x_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *speciesgeneration_ptr = speciesgeneration_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *thermalconductivity_ptr = thermalconductivity_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *heatgeneration_ptr = heatgeneration_field_ptr->scalar_ptr_map[mesh_ptr];
 
         // determine matrix coefficients for the domain
-        matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, diffusioncoefficient_ptr, velocity_x_ptr, speciesgeneration_ptr);
+        matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, thermalconductivity_ptr, heatgeneration_ptr);
 
     }
 
 }
 
-void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
+void PhysicsHeatTransferSteady::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *speciesgeneration_ptr
+    ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
 )
 {
 
@@ -133,47 +128,39 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
         int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
         int did_arr[2] = {p0_did, p1_did};
 
-        // get diffusion coefficient of points around elemen
-        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_did];
-        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_did];
-        double diffcoeff_arr[2] = {diffcoeff_p0, diffcoeff_p1};
+        // get thermal conductivity of points around element
+        double thermcond_p0 = thermalconductivity_ptr->point_value_vec[p0_did];
+        double thermcond_p1 = thermalconductivity_ptr->point_value_vec[p1_did];
+        double thermcond_arr[2] = {thermcond_p0, thermcond_p1};
 
-        // get velocity of points around element
-        double velx_p0 = velocity_x_ptr->point_value_vec[p0_did];
-        double velx_p1 = velocity_x_ptr->point_value_vec[p1_did];
-        double velx_arr[2] = {velx_p0, velx_p1};
-
-        // get species generation of points around element
-        double specgen_p0 = speciesgeneration_ptr->point_value_vec[p0_did];
-        double specgen_p1 = speciesgeneration_ptr->point_value_vec[p1_did];
-        double specgen_arr[2] = {specgen_p0, specgen_p1};
+        // get heat generation of points around element
+        double heatgen_p0 = heatgeneration_ptr->point_value_vec[p0_did];
+        double heatgen_p1 = heatgeneration_ptr->point_value_vec[p1_did];
+        double heatgen_arr[2] = {heatgen_p0, heatgen_p1};
 
         // calculate a_mat coefficients
         // matrix row = start_row of test function (physics) + field ID of variable
         // matrix column = start_column of variable + field ID of variable
 
-        // get field ID of concentration points
+        // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // calculate a_mat coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++){
         for (int indx_j = 0; indx_j < 2; indx_j++){
             int mat_row = start_row + fid_arr[indx_i];
-            int mat_col = concentration_field_ptr->start_col + fid_arr[indx_j];
-            a_mat.coeffRef(mat_row, mat_col) += (
-                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j] +
-                velx_arr[indx_i]*integral_ptr->integral_Ni_line2_derivative_Nj_line2_x_vec[element_did][indx_i][indx_j]
-            );
+            int mat_col = temperature_field_ptr->start_col + fid_arr[indx_j];
+            a_mat.coeffRef(mat_row, mat_col) += thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j];
         }}
 
         // calculate b_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += specgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            b_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
         }
 
     }
@@ -202,8 +189,8 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -234,10 +221,10 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
         // get local ID of point where boundary is applied
         int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
 
-        // get field ID of concentration points
+        // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // erase entire row
@@ -273,10 +260,10 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
         int config_id = boundary_ptr->element_value_config_id_vec[boundary_id];
         BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundary_config_vec[config_id];
 
-        // get field ID of concentration points
+        // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -286,7 +273,7 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
             // set a_mat and b_vec
             // -1 values indicate invalid points
             int mat_row = start_row + fid_arr[ea_lid];
-            int mat_col = concentration_field_ptr->start_col + fid_arr[ea_lid];
+            int mat_col = temperature_field_ptr->start_col + fid_arr[ea_lid];
             if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
@@ -299,12 +286,12 @@ void PhysicsConvectionDiffusionLiquidSteady::matrix_fill_domain
 
 }
 
-void PhysicsConvectionDiffusionLiquidSteady::set_start_row(int start_row_in)
+void PhysicsHeatTransferSteady::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
 }
 
-std::vector<VariableFieldGroup*> PhysicsConvectionDiffusionLiquidSteady::get_variable_field_ptr_vec()
+std::vector<VariableFieldGroup*> PhysicsHeatTransferSteady::get_variable_field_ptr_vec()
 {
     return variable_field_ptr_vec;
 }
