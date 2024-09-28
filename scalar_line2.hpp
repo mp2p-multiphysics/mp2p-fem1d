@@ -16,6 +16,7 @@ class ScalarLine2
 
     // functions
     void output_csv(std::string file_out_str);
+    void output_csv(std::string file_out_base_str, int ts);
 
     // default constructor
     ScalarLine2()
@@ -45,6 +46,41 @@ class ScalarLine2
 
 void ScalarLine2::output_csv(std::string file_out_str)
 {
+
+    // initialize file stream
+    std::ofstream file_out_stream(file_out_str);
+
+    // write to file
+    file_out_stream << "id,pos_x,value\n";
+    for (int point_did = 0; point_did < num_point_domain; point_did++)
+    {
+        file_out_stream << mesh_l2_ptr->point_gid_vec[point_did] << ",";
+        file_out_stream << mesh_l2_ptr->point_position_x_vec[point_did] << ",";
+        file_out_stream << point_value_vec[point_did] << "\n";
+    }
+
+}
+
+void ScalarLine2::output_csv(std::string file_out_base_str, int ts)
+{
+
+    // split filename at '*'
+    // will be replaced with timestep later
+    std::vector<std::string> file_out_base_vec;
+    std::stringstream file_out_base_stream(file_out_base_str);
+    std::string string_sub;
+    while(std::getline(file_out_base_stream, string_sub, '*'))
+    {
+        file_out_base_vec.push_back(string_sub);
+    }
+
+    // create output filename
+    // replace '*' with timestep
+    std::string file_out_str = file_out_base_vec[0];
+    for (int i = 1; i < file_out_base_vec.size(); i++)
+    {
+        file_out_str += std::to_string(ts) + file_out_base_vec[i];
+    }
 
     // initialize file stream
     std::ofstream file_out_stream(file_out_str);

@@ -1,5 +1,5 @@
-#ifndef PHYSICS_BASE_STEADY
-#define PHYSICS_BASE_STEADY
+#ifndef PHYSICSTRANSIENT_BASE
+#define PHYSICSTRANSIENT_BASE
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
@@ -9,7 +9,7 @@
 #include "integral_physicsgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsBaseSteady
+class PhysicsTransientBase
 {
 
     public:
@@ -26,29 +26,37 @@ class PhysicsBaseSteady
     int start_row = -1;
 
     // functions
-    virtual void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
+    virtual void matrix_fill
+    (
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+    );
     virtual void set_start_row(int start_row_in);
     virtual std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
-    PhysicsBaseSteady()
+    PhysicsTransientBase()
     {
 
     }
 
 };
 
-void PhysicsBaseSteady::matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec)
+void PhysicsTransientBase::matrix_fill
+(
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+)
 {
 
 }
 
-void PhysicsBaseSteady::set_start_row(int start_row_in)
+void PhysicsTransientBase::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
 }
 
-std::vector<VariableFieldGroup*> PhysicsBaseSteady::get_variable_field_ptr_vec()
+std::vector<VariableFieldGroup*> PhysicsTransientBase::get_variable_field_ptr_vec()
 {
     return variable_field_ptr_vec;
 }

@@ -1,16 +1,16 @@
-#ifndef PHYSICS_CONVECTIONDIFFUSION_STEADY_LINE2
-#define PHYSICS_CONVECTIONDIFFUSION_STEADY_LINE2
+#ifndef PHYSICSSTEADY_CONVECTIONDIFFUSION
+#define PHYSICSSTEADY_CONVECTIONDIFFUSION
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
 #include "container_typedef.hpp"
 #include "integral_physicsgroup.hpp"
 #include "mesh_physicsgroup.hpp"
-#include "physics_base_steady.hpp"
+#include "physicssteady_base.hpp"
 #include "scalar_fieldgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsConvectionDiffusionSteady : public PhysicsBaseSteady
+class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
 {
 
     public:
@@ -38,13 +38,13 @@ class PhysicsConvectionDiffusionSteady : public PhysicsBaseSteady
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
-    PhysicsConvectionDiffusionSteady()
+    PhysicsSteadyConvectionDiffusion()
     {
 
     }
 
     // constructor
-    PhysicsConvectionDiffusionSteady
+    PhysicsSteadyConvectionDiffusion
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
         VariableFieldGroup &concentration_field_in,
@@ -84,7 +84,7 @@ class PhysicsConvectionDiffusionSteady : public PhysicsBaseSteady
 
 };
 
-void PhysicsConvectionDiffusionSteady::matrix_fill
+void PhysicsSteadyConvectionDiffusion::matrix_fill
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
 )
@@ -111,7 +111,7 @@ void PhysicsConvectionDiffusionSteady::matrix_fill
 
 }
 
-void PhysicsConvectionDiffusionSteady::matrix_fill_domain
+void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
@@ -299,12 +299,12 @@ void PhysicsConvectionDiffusionSteady::matrix_fill_domain
 
 }
 
-void PhysicsConvectionDiffusionSteady::set_start_row(int start_row_in)
+void PhysicsSteadyConvectionDiffusion::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
 }
 
-std::vector<VariableFieldGroup*> PhysicsConvectionDiffusionSteady::get_variable_field_ptr_vec()
+std::vector<VariableFieldGroup*> PhysicsSteadyConvectionDiffusion::get_variable_field_ptr_vec()
 {
     return variable_field_ptr_vec;
 }

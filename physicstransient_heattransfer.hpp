@@ -1,16 +1,16 @@
-#ifndef PHYSICS_HEATTRANSFER_STEADY_LINE2
-#define PHYSICS_HEATTRANSFER_STEADY_LINE2
+#ifndef PHYSICSTRANSIENT_HEATTRANSFER
+#define PHYSICSTRANSIENT_HEATTRANSFER
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
 #include "container_typedef.hpp"
 #include "integral_physicsgroup.hpp"
 #include "mesh_physicsgroup.hpp"
-#include "physics_base_steady.hpp"
+#include "physicstransient_base.hpp"
 #include "scalar_fieldgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsHeatTransferSteady : public PhysicsBaseSteady
+class PhysicsTransientHeatTransfer : public PhysicsTransientBase
 {
 
     public:
@@ -22,6 +22,8 @@ class PhysicsHeatTransferSteady : public PhysicsBaseSteady
 
     // field groups
     VariableFieldGroup *temperature_field_ptr;
+    ScalarFieldGroup *density_field_ptr;
+    ScalarFieldGroup *heatcapacity_field_ptr;
     ScalarFieldGroup *thermalconductivity_field_ptr;
     ScalarFieldGroup *heatgeneration_field_ptr;
 
@@ -32,21 +34,27 @@ class PhysicsHeatTransferSteady : public PhysicsBaseSteady
     int start_row = -1;
 
     // functions
-    void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
+    void matrix_fill
+    (
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+    );
     void set_start_row(int start_row_in);
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
-    PhysicsHeatTransferSteady()
+    PhysicsTransientHeatTransfer()
     {
 
     }
 
     // constructor
-    PhysicsHeatTransferSteady
+    PhysicsTransientHeatTransfer
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &temperature_field_in, ScalarFieldGroup &thermalconductivity_field_in, ScalarFieldGroup &heatgeneration_field_in
+        VariableFieldGroup &temperature_field_in,
+        ScalarFieldGroup &density_field_in, ScalarFieldGroup &heatcapacity_field_in,
+        ScalarFieldGroup &thermalconductivity_field_in, ScalarFieldGroup &heatgeneration_field_in
     )
     {
         
@@ -57,6 +65,8 @@ class PhysicsHeatTransferSteady : public PhysicsBaseSteady
 
         // store field 
         temperature_field_ptr = &temperature_field_in;
+        density_field_ptr = &density_field_in;
+        heatcapacity_field_ptr = &heatcapacity_field_in;
         thermalconductivity_field_ptr = &thermalconductivity_field_in;
         heatgeneration_field_ptr = &heatgeneration_field_in;
 
@@ -66,6 +76,7 @@ class PhysicsHeatTransferSteady : public PhysicsBaseSteady
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
         integral_physics_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
+        integral_physics_ptr->evaluate_integral_Ni_line2_Nj_line2();
         integral_physics_ptr->evaluate_integral_Ni_line2();
 
     }
@@ -73,16 +84,19 @@ class PhysicsHeatTransferSteady : public PhysicsBaseSteady
     private:
     void matrix_fill_domain
     (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
+        ScalarLine2 *density_ptr, ScalarLine2 *heatcapacity_ptr,
         ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
     );
 
 };
 
-void PhysicsHeatTransferSteady::matrix_fill
+void PhysicsTransientHeatTransfer::matrix_fill
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
 )
 {
 
@@ -96,20 +110,30 @@ void PhysicsHeatTransferSteady::matrix_fill
         IntegralLine2 *integral_ptr = integral_physics_ptr->integral_ptr_vec[indx_d];
 
         // get scalar fields
+        ScalarLine2 *density_ptr = density_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *heatcapacity_ptr = heatcapacity_field_ptr->scalar_ptr_map[mesh_ptr];
         ScalarLine2 *thermalconductivity_ptr = thermalconductivity_field_ptr->scalar_ptr_map[mesh_ptr];
         ScalarLine2 *heatgeneration_ptr = heatgeneration_field_ptr->scalar_ptr_map[mesh_ptr];
 
         // determine matrix coefficients for the domain
-        matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, thermalconductivity_ptr, heatgeneration_ptr);
+        matrix_fill_domain(
+            a_mat, c_mat, d_vec,
+            x_vec, x_last_timestep_vec, dt,
+            mesh_ptr, boundary_ptr, integral_ptr,
+            density_ptr, heatcapacity_ptr,
+            thermalconductivity_ptr, heatgeneration_ptr
+        );
 
     }
 
 }
 
-void PhysicsHeatTransferSteady::matrix_fill_domain
+void PhysicsTransientHeatTransfer::matrix_fill_domain
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
+    ScalarLine2 *density_ptr, ScalarLine2 *heatcapacity_ptr,
     ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
 )
 {
@@ -127,6 +151,16 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
         int p0_did = mesh_ptr->point_gid_to_did_map[p0_gid];
         int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
         int did_arr[2] = {p0_did, p1_did};
+
+        // get density of points around element
+        double den_p0 = density_ptr->point_value_vec[p0_did];
+        double den_p1 = density_ptr->point_value_vec[p1_did];
+        double den_arr[2] = {den_p0, den_p1};
+
+        // get heat capacity of points around element
+        double heatcap_p0 = heatgeneration_ptr->point_value_vec[p0_did];
+        double heatcap_p1 = heatgeneration_ptr->point_value_vec[p1_did];
+        double heatcap_arr[2] = {heatcap_p0, heatcap_p1};
 
         // get thermal conductivity of points around element
         double thermcond_p0 = thermalconductivity_ptr->point_value_vec[p0_did];
@@ -148,19 +182,30 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
         int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
-        // calculate a_mat coefficients
+        // calculate a_mat and c_mat coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++){
         for (int indx_j = 0; indx_j < 2; indx_j++){
+            
+            // calculate matrix indices
             int mat_row = start_row + fid_arr[indx_i];
             int mat_col = temperature_field_ptr->start_col + fid_arr[indx_j];
-            a_mat.coeffRef(mat_row, mat_col) += thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j];
+
+            // calculate a_mat coefficients
+            a_mat.coeffRef(mat_row, mat_col) += (
+                den_arr[indx_i]*heatcap_arr[indx_i]/dt*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j] +
+                thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j]
+            );
+
+            // calculate c_mat coefficients
+            c_mat.coeffRef(mat_row, mat_col) += den_arr[indx_i]*heatcap_arr[indx_i]/dt*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j];
+
         }}
 
-        // calculate b_vec coefficients
+        // calculate d_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            d_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
         }
 
     }
@@ -196,9 +241,9 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
         // apply boundary condition
         if (bcl2.boundary_type_str == "neumann")
         {
-            // add to b_vec
+            // add to d_vec
             int mat_row = start_row + fid_arr[ea_lid];
-            b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
+            d_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
         }
 
     }
@@ -233,7 +278,8 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
         {
             int mat_row = start_row + fid_arr[ea_lid];
             a_mat.row(mat_row) *= 0.;
-            b_vec.coeffRef(mat_row) = 0.;
+            c_mat.row(mat_row) *= 0.;
+            d_vec.coeffRef(mat_row) = 0.;
         }
 
     }
@@ -270,14 +316,14 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
         if (bcl2.boundary_type_str == "dirichlet")
         {
 
-            // set a_mat and b_vec
+            // set a_mat and d_vec
             // -1 values indicate invalid points
             int mat_row = start_row + fid_arr[ea_lid];
             int mat_col = temperature_field_ptr->start_col + fid_arr[ea_lid];
             if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
-                b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
+                d_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
             }
 
         }
@@ -286,12 +332,12 @@ void PhysicsHeatTransferSteady::matrix_fill_domain
 
 }
 
-void PhysicsHeatTransferSteady::set_start_row(int start_row_in)
+void PhysicsTransientHeatTransfer::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
 }
 
-std::vector<VariableFieldGroup*> PhysicsHeatTransferSteady::get_variable_field_ptr_vec()
+std::vector<VariableFieldGroup*> PhysicsTransientHeatTransfer::get_variable_field_ptr_vec()
 {
     return variable_field_ptr_vec;
 }
