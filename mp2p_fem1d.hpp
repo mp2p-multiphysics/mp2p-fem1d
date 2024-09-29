@@ -25,6 +25,7 @@
 #include "physicssteady_convectiondiffusion.hpp"
 #include "physicssteady_heattransfer.hpp"
 #include "physicstransient_base.hpp"
+#include "physicstransient_convectiondiffusion.hpp"
 #include "physicstransient_heattransfer.hpp"
 #include "scalar_fieldgroup.hpp"
 #include "scalar_line2.hpp"

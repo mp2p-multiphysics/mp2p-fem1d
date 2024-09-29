@@ -25,7 +25,6 @@ class MatrixEquationTransient
 
     // functions
     void set_last_timestep_solution();
-    void set_solution();
     void iterate_solution(double dt);
     void store_solution();
 
@@ -106,7 +105,6 @@ class MatrixEquationTransient
         c_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
         d_vec = Eigen::VectorXd::Zero(num_equation);
         x_vec = Eigen::VectorXd::Zero(num_equation);
-        x_last_timestep_vec = Eigen::VectorXd::Zero(num_equation);
         
         // populate x_vec with initial values
 
@@ -143,16 +141,14 @@ class MatrixEquationTransient
 
         }
 
+        // use initial values as previous values
+        x_last_timestep_vec = x_vec;
+
     }
 
 };
 
 void MatrixEquationTransient::set_last_timestep_solution()
-{
-    x_vec = x_last_timestep_vec;
-}
-
-void MatrixEquationTransient::set_solution()
 {
     x_last_timestep_vec = x_vec;
 }
