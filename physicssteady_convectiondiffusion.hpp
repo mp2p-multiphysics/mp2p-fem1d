@@ -22,9 +22,9 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
 
     // field groups
     VariableFieldGroup *concentration_field_ptr;
-    ScalarFieldGroup *diffusioncoefficient_field_ptr;
     ScalarFieldGroup *velocity_x_field_ptr;
-    ScalarFieldGroup *speciesgeneration_field_ptr;
+    ScalarFieldGroup *diffusioncoefficient_field_ptr;
+    ScalarFieldGroup *generationcoefficient_field_ptr;
 
     // vector of variable fields
     std::vector<VariableFieldGroup*> variable_field_ptr_vec;
@@ -47,8 +47,8 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
     PhysicsSteadyConvectionDiffusion
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &concentration_field_in,
-        ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &velocity_x_field_in, ScalarFieldGroup &speciesgeneration_field_in
+        VariableFieldGroup &concentration_field_in, ScalarFieldGroup &velocity_x_field_in,
+        ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &generationcoefficient_field_in
     )
     {
         
@@ -59,9 +59,9 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
 
         // store field
         concentration_field_ptr = &concentration_field_in;
-        diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
         velocity_x_field_ptr = &velocity_x_field_in;
-        speciesgeneration_field_ptr = &speciesgeneration_field_in;
+        diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
+        generationcoefficient_field_ptr = &generationcoefficient_field_in;
 
         // vector of variable fields 
         variable_field_ptr_vec = {concentration_field_ptr};
@@ -79,7 +79,7 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
     (
         Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *speciesgeneration_ptr
+        ScalarLine2 *velocity_x_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
 
 };
@@ -100,12 +100,12 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill
         IntegralLine2 *integral_ptr = integral_physics_ptr->integral_ptr_vec[indx_d];
 
         // get scalar fields
-        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
         ScalarLine2 *velocity_x_ptr = velocity_x_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *speciesgeneration_ptr = speciesgeneration_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *generationcoefficient_ptr = generationcoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
 
         // determine matrix coefficients for the domain
-        matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, diffusioncoefficient_ptr, velocity_x_ptr, speciesgeneration_ptr);
+        matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, velocity_x_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
 
     }
 
@@ -115,7 +115,7 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *speciesgeneration_ptr
+    ScalarLine2 *velocity_x_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
@@ -133,20 +133,20 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
         int did_arr[2] = {p0_did, p1_did};
 
-        // get diffusion coefficient of points around elemen
-        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_did];
-        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_did];
-        double diffcoeff_arr[2] = {diffcoeff_p0, diffcoeff_p1};
-
         // get velocity of points around element
         double velx_p0 = velocity_x_ptr->point_value_vec[p0_did];
         double velx_p1 = velocity_x_ptr->point_value_vec[p1_did];
         double velx_arr[2] = {velx_p0, velx_p1};
 
-        // get species generation of points around element
-        double specgen_p0 = speciesgeneration_ptr->point_value_vec[p0_did];
-        double specgen_p1 = speciesgeneration_ptr->point_value_vec[p1_did];
-        double specgen_arr[2] = {specgen_p0, specgen_p1};
+        // get diffusion coefficient of points around elemen
+        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_did];
+        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_did];
+        double diffcoeff_arr[2] = {diffcoeff_p0, diffcoeff_p1};
+
+        // get generation coefficient of points around element
+        double gencoeff_p0 = generationcoefficient_ptr->point_value_vec[p0_did];
+        double gencoeff_p1 = generationcoefficient_ptr->point_value_vec[p1_did];
+        double gencoeff_arr[2] = {gencoeff_p0, gencoeff_p1};
 
         // calculate a_mat coefficients
         // matrix row = start_row of test function (physics) + field ID of variable
@@ -173,7 +173,7 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += specgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
         }
 
     }

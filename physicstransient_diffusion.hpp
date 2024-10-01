@@ -1,5 +1,5 @@
-#ifndef PHYSICSTRANSIENT_HEATTRANSFER
-#define PHYSICSTRANSIENT_HEATTRANSFER
+#ifndef PHYSICSTRANSIENT_DIFFUSION
+#define PHYSICSTRANSIENT_DIFFUSION
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"
@@ -10,7 +10,7 @@
 #include "scalar_fieldgroup.hpp"
 #include "variable_fieldgroup.hpp"
 
-class PhysicsTransientHeatTransfer : public PhysicsTransientBase
+class PhysicsTransientDiffusion : public PhysicsTransientBase
 {
 
     public:
@@ -21,11 +21,10 @@ class PhysicsTransientHeatTransfer : public PhysicsTransientBase
     IntegralPhysicsGroup *integral_physics_ptr;
 
     // field groups
-    VariableFieldGroup *temperature_field_ptr;
-    ScalarFieldGroup *density_field_ptr;
-    ScalarFieldGroup *heatcapacity_field_ptr;
-    ScalarFieldGroup *thermalconductivity_field_ptr;
-    ScalarFieldGroup *heatgeneration_field_ptr;
+    VariableFieldGroup *value_field_ptr;
+    ScalarFieldGroup *derivativecoefficient_field_ptr;
+    ScalarFieldGroup *diffusioncoefficient_field_ptr;
+    ScalarFieldGroup *generationcoefficient_field_ptr;
 
     // vector of variable fields
     std::vector<VariableFieldGroup*> variable_field_ptr_vec;
@@ -42,18 +41,17 @@ class PhysicsTransientHeatTransfer : public PhysicsTransientBase
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
-    PhysicsTransientHeatTransfer()
+    PhysicsTransientDiffusion()
     {
 
     }
 
     // constructor
-    PhysicsTransientHeatTransfer
+    PhysicsTransientDiffusion
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &temperature_field_in,
-        ScalarFieldGroup &density_field_in, ScalarFieldGroup &heatcapacity_field_in,
-        ScalarFieldGroup &thermalconductivity_field_in, ScalarFieldGroup &heatgeneration_field_in
+        VariableFieldGroup &value_field_in,
+        ScalarFieldGroup &derivativecoefficient_field_in, ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &generationcoefficient_field_in
     )
     {
         
@@ -63,14 +61,13 @@ class PhysicsTransientHeatTransfer : public PhysicsTransientBase
         integral_physics_ptr = &integral_physics_in;
 
         // store field 
-        temperature_field_ptr = &temperature_field_in;
-        density_field_ptr = &density_field_in;
-        heatcapacity_field_ptr = &heatcapacity_field_in;
-        thermalconductivity_field_ptr = &thermalconductivity_field_in;
-        heatgeneration_field_ptr = &heatgeneration_field_in;
+        value_field_ptr = &value_field_in;
+        derivativecoefficient_field_ptr = &derivativecoefficient_field_in;
+        diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
+        generationcoefficient_field_ptr = &generationcoefficient_field_in;
 
         // vector of variable fields 
-        variable_field_ptr_vec = {temperature_field_ptr};
+        variable_field_ptr_vec = {value_field_ptr};
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
@@ -86,13 +83,12 @@ class PhysicsTransientHeatTransfer : public PhysicsTransientBase
         Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
         Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-        ScalarLine2 *density_ptr, ScalarLine2 *heatcapacity_ptr,
-        ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
+        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
 
 };
 
-void PhysicsTransientHeatTransfer::matrix_fill
+void PhysicsTransientDiffusion::matrix_fill
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
     Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
@@ -109,31 +105,28 @@ void PhysicsTransientHeatTransfer::matrix_fill
         IntegralLine2 *integral_ptr = integral_physics_ptr->integral_ptr_vec[indx_d];
 
         // get scalar fields
-        ScalarLine2 *density_ptr = density_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *heatcapacity_ptr = heatcapacity_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *thermalconductivity_ptr = thermalconductivity_field_ptr->scalar_ptr_map[mesh_ptr];
-        ScalarLine2 *heatgeneration_ptr = heatgeneration_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *derivativecoefficient_ptr = derivativecoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
+        ScalarLine2 *generationcoefficient_ptr = generationcoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
 
         // determine matrix coefficients for the domain
         matrix_fill_domain(
             a_mat, c_mat, d_vec,
             x_vec, x_last_timestep_vec, dt,
             mesh_ptr, boundary_ptr, integral_ptr,
-            density_ptr, heatcapacity_ptr,
-            thermalconductivity_ptr, heatgeneration_ptr
+            derivativecoefficient_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr
         );
 
     }
 
 }
 
-void PhysicsTransientHeatTransfer::matrix_fill_domain
+void PhysicsTransientDiffusion::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
     Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *density_ptr, ScalarLine2 *heatcapacity_ptr,
-    ScalarLine2 *thermalconductivity_ptr, ScalarLine2 *heatgeneration_ptr
+    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
@@ -151,25 +144,20 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
         int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
         int did_arr[2] = {p0_did, p1_did};
 
-        // get density of points around element
-        double den_p0 = density_ptr->point_value_vec[p0_did];
-        double den_p1 = density_ptr->point_value_vec[p1_did];
-        double den_arr[2] = {den_p0, den_p1};
+        // get derivative coefficient of points around element
+        double dervcoeff_p0 = derivativecoefficient_ptr->point_value_vec[p0_did];
+        double dervcoeff_p1 = derivativecoefficient_ptr->point_value_vec[p1_did];
+        double dervcoeff_arr[2] = {dervcoeff_p0, dervcoeff_p1};
 
-        // get heat capacity of points around element
-        double heatcap_p0 = heatgeneration_ptr->point_value_vec[p0_did];
-        double heatcap_p1 = heatgeneration_ptr->point_value_vec[p1_did];
-        double heatcap_arr[2] = {heatcap_p0, heatcap_p1};
+        // get diffusion coefficient of points around element
+        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_did];
+        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_did];
+        double diffcoeff_arr[2] = {diffcoeff_p0, diffcoeff_p1};
 
-        // get thermal conductivity of points around element
-        double thermcond_p0 = thermalconductivity_ptr->point_value_vec[p0_did];
-        double thermcond_p1 = thermalconductivity_ptr->point_value_vec[p1_did];
-        double thermcond_arr[2] = {thermcond_p0, thermcond_p1};
-
-        // get heat generation of points around element
-        double heatgen_p0 = heatgeneration_ptr->point_value_vec[p0_did];
-        double heatgen_p1 = heatgeneration_ptr->point_value_vec[p1_did];
-        double heatgen_arr[2] = {heatgen_p0, heatgen_p1};
+        // get generation coefficient of points around element
+        double gencoeff_p0 = generationcoefficient_ptr->point_value_vec[p0_did];
+        double gencoeff_p1 = generationcoefficient_ptr->point_value_vec[p1_did];
+        double gencoeff_arr[2] = {gencoeff_p0, gencoeff_p1};
 
         // calculate a_mat coefficients
         // matrix row = start_row of test function (physics) + field ID of variable
@@ -177,8 +165,8 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // calculate a_mat and c_mat coefficients
@@ -187,16 +175,16 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
             
             // calculate matrix indices
             int mat_row = start_row + fid_arr[indx_i];
-            int mat_col = temperature_field_ptr->start_col + fid_arr[indx_j];
+            int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
 
             // calculate a_mat coefficients
             a_mat.coeffRef(mat_row, mat_col) += (
-                (den_arr[indx_i]*heatcap_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j] +
-                thermcond_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j]
+                (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j] +
+                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j]
             );
 
             // calculate c_mat coefficients
-            c_mat.coeffRef(mat_row, mat_col) += (den_arr[indx_i]*heatcap_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j];
+            c_mat.coeffRef(mat_row, mat_col) += (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j];
 
         }}
 
@@ -204,7 +192,7 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            d_vec.coeffRef(mat_row) += heatgen_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
         }
 
     }
@@ -233,8 +221,8 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -267,8 +255,8 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // erase entire row
@@ -307,8 +295,8 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = temperature_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = temperature_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -318,7 +306,7 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
             // set a_mat and d_vec
             // -1 values indicate invalid points
             int mat_row = start_row + fid_arr[ea_lid];
-            int mat_col = temperature_field_ptr->start_col + fid_arr[ea_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[ea_lid];
             if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
@@ -331,12 +319,12 @@ void PhysicsTransientHeatTransfer::matrix_fill_domain
 
 }
 
-void PhysicsTransientHeatTransfer::set_start_row(int start_row_in)
+void PhysicsTransientDiffusion::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
 }
 
-std::vector<VariableFieldGroup*> PhysicsTransientHeatTransfer::get_variable_field_ptr_vec()
+std::vector<VariableFieldGroup*> PhysicsTransientDiffusion::get_variable_field_ptr_vec()
 {
     return variable_field_ptr_vec;
 }
