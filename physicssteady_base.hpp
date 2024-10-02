@@ -28,6 +28,7 @@ class PhysicsSteadyBase
     // functions
     virtual void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
     virtual void set_start_row(int start_row_in);
+    virtual int get_start_row();
     virtual std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -46,6 +47,11 @@ void PhysicsSteadyBase::matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::V
 void PhysicsSteadyBase::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
+}
+
+int PhysicsSteadyBase::get_start_row()
+{
+    return start_row;
 }
 
 std::vector<VariableFieldGroup*> PhysicsSteadyBase::get_variable_field_ptr_vec()

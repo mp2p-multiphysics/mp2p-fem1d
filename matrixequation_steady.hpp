@@ -62,17 +62,20 @@ class MatrixEquationSteady
                     assign_start_col += variable_field_ptr->num_point_field;
                 }
 
-                // assign starting row to physics
+                // assign starting row to physics if none yet
                 // increment assign_start_row by number of new mesh points
-                physics_ptr->set_start_row(assign_start_row);
-                assign_start_row = assign_start_col;
+                if (physics_ptr->get_start_row() == -1)
+                {
+                    physics_ptr->set_start_row(assign_start_row);
+                    assign_start_row = assign_start_col;
+                }
 
             }
 
         }
 
         // get number of linear equations (total number of mesh points)
-        num_equation = assign_start_row;
+        num_equation = assign_start_col;
 
         // get vector of variable fields
         

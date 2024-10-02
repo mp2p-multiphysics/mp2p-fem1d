@@ -23,6 +23,7 @@
 #include "mesh_physicsgroup.hpp"
 #include "physicssteady_base.hpp"
 #include "physicssteady_convectiondiffusion.hpp"
+#include "physicssteady_diffusion_multi.hpp"
 #include "physicssteady_diffusion.hpp"
 #include "physicstransient_base.hpp"
 #include "physicstransient_convectiondiffusion.hpp"
