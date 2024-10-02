@@ -39,6 +39,7 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
         Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
     );
     void set_start_row(int start_row_in);
+    int get_start_row();
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -329,6 +330,11 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 void PhysicsTransientConvectionDiffusion::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
+}
+
+int PhysicsTransientConvectionDiffusion::get_start_row()
+{
+    return start_row;
 }
 
 std::vector<VariableFieldGroup*> PhysicsTransientConvectionDiffusion::get_variable_field_ptr_vec()

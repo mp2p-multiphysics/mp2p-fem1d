@@ -1,5 +1,6 @@
 #ifndef PHYSICSSTEADY_DIFFUSION_MULTICOMPONENT
 #define PHYSICSSTEADY_DIFFUSION_MULTICOMPONENT
+#include <unordered_map>
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_physicsgroup.hpp"

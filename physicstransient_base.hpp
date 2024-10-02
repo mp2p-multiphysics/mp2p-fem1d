@@ -32,6 +32,7 @@ class PhysicsTransientBase
         Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
     );
     virtual void set_start_row(int start_row_in);
+    virtual int get_start_row();
     virtual std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -54,6 +55,11 @@ void PhysicsTransientBase::matrix_fill
 void PhysicsTransientBase::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
+}
+
+int PhysicsTransientBase::get_start_row()
+{
+    return start_row;
 }
 
 std::vector<VariableFieldGroup*> PhysicsTransientBase::get_variable_field_ptr_vec()

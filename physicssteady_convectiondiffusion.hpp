@@ -35,6 +35,7 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
     // functions
     void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
     void set_start_row(int start_row_in);
+    virtual int get_start_row();
     std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -302,6 +303,11 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
 void PhysicsSteadyConvectionDiffusion::set_start_row(int start_row_in)
 {
     start_row = start_row_in;
+}
+
+int PhysicsSteadyConvectionDiffusion::get_start_row()
+{
+    return start_row;
 }
 
 std::vector<VariableFieldGroup*> PhysicsSteadyConvectionDiffusion::get_variable_field_ptr_vec()
