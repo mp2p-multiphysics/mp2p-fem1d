@@ -72,6 +72,7 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
         integral_physics_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
         integral_physics_ptr->evaluate_integral_Ni_line2_derivative_Nj_line2_x();
         integral_physics_ptr->evaluate_integral_Ni_line2();
+        integral_physics_ptr->evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x();
 
     }
 
@@ -162,12 +163,24 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         // calculate a_mat coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++){
         for (int indx_j = 0; indx_j < 2; indx_j++){
+
+            // calculate matrix row and column
             int mat_row = start_row + fid_arr[indx_i];
             int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
+            
+            // calculate velocity derivative
+            double dvelx_dx = 0;
+            for (int indx_k = 0; indx_k < 2; indx_k++){
+                dvelx_dx += velx_arr[indx_k]*integral_ptr->integral_Ni_line2_Nj_line2_derivative_Nk_line2_x_vec[element_did][indx_i][indx_j][indx_k];
+            }
+
+            // fill up a_mat
             a_mat.coeffRef(mat_row, mat_col) += (
                 diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j] +
-                velx_arr[indx_i]*integral_ptr->integral_Ni_line2_derivative_Nj_line2_x_vec[element_did][indx_i][indx_j]
+                velx_arr[indx_i]*integral_ptr->integral_Ni_line2_derivative_Nj_line2_x_vec[element_did][indx_i][indx_j] +
+                dvelx_dx 
             );
+
         }}
 
         // calculate b_vec coefficients

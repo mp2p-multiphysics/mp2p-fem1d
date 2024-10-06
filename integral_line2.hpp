@@ -24,7 +24,7 @@ class IntegralLine2
     Vector3D integral_Ni_line2_Nj_line2_vec;
     Vector3D integral_Ni_line2_derivative_Nj_line2_x_vec;
     Vector3D integral_div_Ni_line2_dot_div_Nj_line2_vec;
-    Vector4D integral_Ni_line2_Nj_line2_derivative_Nj_line2_x_vec;
+    Vector4D integral_Ni_line2_Nj_line2_derivative_Nk_line2_x_vec;
 
     // functions for computing integrals
     void evaluate_Ni_derivative();
@@ -305,7 +305,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x()
     }
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
-    integral_Ni_line2_Nj_line2_derivative_Nj_line2_x_vec.push_back(integral_part_i_vec);
+    integral_Ni_line2_Nj_line2_derivative_Nk_line2_x_vec.push_back(integral_part_i_vec);
 
     }
 
