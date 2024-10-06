@@ -3,12 +3,16 @@
 #include <unordered_map>
 #include <vector>
 #include "Eigen/Eigen"
+#include "boundary_physicsgroup_vector.hpp"
 #include "boundary_physicsgroup.hpp"
 #include "container_typedef.hpp"
 #include "integral_physicsgroup.hpp"
 #include "mesh_physicsgroup.hpp"
 #include "physicssteady_base.hpp"
+#include "scalar_fieldgroup_matrix.hpp"
+#include "scalar_fieldgroup_vector.hpp"
 #include "scalar_fieldgroup.hpp"
+#include "variable_fieldgroup_vector.hpp"
 #include "variable_fieldgroup.hpp"
 
 class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
@@ -18,13 +22,13 @@ class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
 
     // physics groups
     MeshPhysicsGroup *mesh_physics_ptr;
-    std::vector<BoundaryPhysicsGroup*> boundary_physics_ptr_vec;
+    BoundaryPhysicsGroupVector boundary_physics_ptr_vec;
     IntegralPhysicsGroup *integral_physics_ptr;
 
     // field groups
-    std::vector<VariableFieldGroup*> value_field_ptr_vec;
-    std::vector<std::unordered_map<int, ScalarFieldGroup*>> diffusioncoefficient_field_ptr_mat;
-    std::vector<ScalarFieldGroup*> generationcoefficient_field_ptr_vec;
+    VariableFieldGroupVector value_field_ptr_vec;
+    ScalarFieldGroupMatrix diffusioncoefficient_field_ptr_mat;
+    ScalarFieldGroupVector generationcoefficient_field_ptr_vec;
 
     // vector of variable fields
     std::vector<VariableFieldGroup*> variable_field_ptr_vec;
@@ -47,10 +51,9 @@ class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
     // constructor
     PhysicsSteadyDiffusionMulticomponent
     (
-        MeshPhysicsGroup &mesh_physics_in, std::vector<BoundaryPhysicsGroup*> boundary_physics_ptr_vec_in, IntegralPhysicsGroup &integral_physics_in,
-        std::vector<VariableFieldGroup*> value_field_ptr_vec_in,
-        std::vector<std::unordered_map<int, ScalarFieldGroup*>> diffusioncoefficient_field_ptr_mat_in,
-        std::vector<ScalarFieldGroup*> &generationcoefficient_field_ptr_vec_in
+        MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroupVector &boundary_physics_ptr_vec_in, IntegralPhysicsGroup &integral_physics_in,
+        VariableFieldGroupVector &value_field_ptr_vec_in,
+        ScalarFieldGroupMatrix &diffusioncoefficient_field_ptr_mat_in, ScalarFieldGroupVector &generationcoefficient_field_ptr_vec_in
     )
     {
         
@@ -65,7 +68,7 @@ class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
         generationcoefficient_field_ptr_vec = generationcoefficient_field_ptr_vec_in;
 
         // vector of variable fields 
-        variable_field_ptr_vec = value_field_ptr_vec;
+        variable_field_ptr_vec = value_field_ptr_vec.get_vector();
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
@@ -79,7 +82,8 @@ class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
     (
         Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-        VariableFieldGroup *value_field_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+        VariableFieldGroup *value_field_ptr,
+        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
 
 };
@@ -102,23 +106,23 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill
         // indx_c - column in diffusion matrix (variable)
 
         // iterate through each diffusion equation
-        for (int indx_r = 0; indx_r < boundary_physics_ptr_vec.size(); indx_r++)
+        for (int indx_r = 0; indx_r < boundary_physics_ptr_vec.num_entry; indx_r++)
         {
             
             // subset the boundary conditions
-            BoundaryLine2Struct *boundary_ptr = boundary_physics_ptr_vec[indx_r]->boundary_ptr_vec[indx_d];
+            BoundaryLine2Struct *boundary_ptr = boundary_physics_ptr_vec.get_entry(indx_r)->boundary_ptr_vec[indx_d];
 
             // subset value and generation coefficient
-            VariableFieldGroup *value_field_ptr = value_field_ptr_vec[indx_r];
-            ScalarLine2 *generationcoefficient_ptr = generationcoefficient_field_ptr_vec[indx_r]->scalar_ptr_map[mesh_ptr];
+            VariableFieldGroup *value_field_ptr = value_field_ptr_vec.get_entry(indx_r);
+            ScalarLine2 *generationcoefficient_ptr = generationcoefficient_field_ptr_vec.get_entry(indx_r)->scalar_ptr_map[mesh_ptr];
 
             // iterate through each variable
-            for (auto &key_value : diffusioncoefficient_field_ptr_mat[indx_r])
+            for (auto &key_value : diffusioncoefficient_field_ptr_mat.get_row(indx_r))
             {
 
                 // subset diffusion coefficient
                 int indx_c = key_value.first;
-                ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr_mat[indx_r][indx_c]->scalar_ptr_map[mesh_ptr];
+                ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr_mat.get_entry(indx_r, indx_c)->scalar_ptr_map[mesh_ptr];
 
                 // determine matrix coefficients for the domain and equation
                 matrix_fill_domain(a_mat, b_vec, x_vec, mesh_ptr, boundary_ptr, integral_ptr, value_field_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
@@ -142,7 +146,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
     // calculate adjustment in starting row
     // e.g., 1st variable starts at start_row, 2nd starts after 1st, etc.
     int adjust_start_row = 0;
-    for (auto &value_field_ptr_sub : value_field_ptr_vec)
+    for (auto &value_field_ptr_sub : value_field_ptr_vec.get_vector())
     {
         
         // stop incrementing if dealing with current variable

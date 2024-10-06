@@ -21,7 +21,7 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
     IntegralPhysicsGroup *integral_physics_ptr;
 
     // field groups
-    VariableFieldGroup *concentration_field_ptr;
+    VariableFieldGroup *value_field_ptr;
     ScalarFieldGroup *velocity_x_field_ptr;
     ScalarFieldGroup *derivativecoefficient_field_ptr;
     ScalarFieldGroup *diffusioncoefficient_field_ptr;
@@ -52,8 +52,8 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
     PhysicsTransientConvectionDiffusion
     (
         MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &concentration_field_in, ScalarFieldGroup &velocity_x_field_in,
-        ScalarFieldGroup &derivativecoefficient_field_in, ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &generationcoefficient_field_in
+        VariableFieldGroup &value_field_in,
+        ScalarFieldGroup &derivativecoefficient_field_in, ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &velocity_x_field_in, ScalarFieldGroup &generationcoefficient_field_in
     )
     {
         
@@ -63,14 +63,14 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
         integral_physics_ptr = &integral_physics_in;
 
         // store field
-        concentration_field_ptr = &concentration_field_in;
+        value_field_ptr = &value_field_in;
         velocity_x_field_ptr = &velocity_x_field_in;
         derivativecoefficient_field_ptr = &derivativecoefficient_field_in;
         diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
         generationcoefficient_field_ptr = &generationcoefficient_field_in;
 
         // vector of variable fields 
-        variable_field_ptr_vec = {concentration_field_ptr};
+        variable_field_ptr_vec = {value_field_ptr};
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
@@ -87,8 +87,7 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
         Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
         Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-        ScalarLine2 *velocity_x_ptr,
-        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *generationcoefficient_ptr
     );
 
 };
@@ -116,7 +115,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill
         ScalarLine2 *generationcoefficient_ptr = generationcoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
 
         // determine matrix coefficients for the domain
-        matrix_fill_domain(a_mat, c_mat, d_vec, x_vec, x_last_timestep_vec, dt, mesh_ptr, boundary_ptr, integral_ptr, velocity_x_ptr, derivativecoefficient_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
+        matrix_fill_domain(a_mat, c_mat, d_vec, x_vec, x_last_timestep_vec, dt, mesh_ptr, boundary_ptr, integral_ptr, derivativecoefficient_ptr, diffusioncoefficient_ptr, velocity_x_ptr, generationcoefficient_ptr);
 
     }
 
@@ -127,8 +126,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
     Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
     Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
     MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *velocity_x_ptr,
-    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
@@ -172,8 +170,8 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
         // get field ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // calculate a_mat coefficients
@@ -182,7 +180,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
             
             // calculate matrix indices
             int mat_row = start_row + fid_arr[indx_i];
-            int mat_col = concentration_field_ptr->start_col + fid_arr[indx_j];
+            int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
 
             // calculate a_mat coefficients
             a_mat.coeffRef(mat_row, mat_col) += (
@@ -229,8 +227,8 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -263,8 +261,8 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
         // get field ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // erase entire row
@@ -303,8 +301,8 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
         // get field ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = concentration_field_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = concentration_field_ptr->point_gid_to_fid_map[p1_gid];
+        int p0_fid = value_field_ptr->point_gid_to_fid_map[p0_gid];
+        int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
@@ -314,7 +312,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
             // set a_mat and d_vec
             // -1 values indicate invalid points
             int mat_row = start_row + fid_arr[ea_lid];
-            int mat_col = concentration_field_ptr->start_col + fid_arr[ea_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[ea_lid];
             if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;

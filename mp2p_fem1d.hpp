@@ -12,6 +12,7 @@
 */
 
 #include "boundary_line2.hpp"
+#include "boundary_physicsgroup_vector.hpp"
 #include "boundary_physicsgroup.hpp"
 #include "initialize_boundary_line2_csv.hpp"
 #include "initialize_mesh_line2_csv.hpp"
@@ -31,7 +32,10 @@
 #include "physicstransient_convectiondiffusion.hpp"
 #include "physicstransient_diffusion_multicomponent.hpp"
 #include "physicstransient_diffusion.hpp"
+#include "scalar_fieldgroup_matrix.hpp"
+#include "scalar_fieldgroup_vector.hpp"
 #include "scalar_fieldgroup.hpp"
 #include "scalar_line2.hpp"
+#include "variable_fieldgroup_vector.hpp"
 #include "variable_fieldgroup.hpp"
 #include "variable_line2.hpp"
