@@ -18,6 +18,7 @@ class IntegralPhysicsGroup
     void evaluate_integral_Ni_line2_Nj_line2();
     void evaluate_integral_Ni_line2_derivative_Nj_line2_x();
     void evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
+    void evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x();
 
     // default constructor
     IntegralPhysicsGroup()
@@ -95,6 +96,17 @@ void IntegralPhysicsGroup::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
     for (auto integral_ptr : integral_ptr_vec)
     {
         integral_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
+    }
+
+}
+
+void IntegralPhysicsGroup::evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x()
+{
+
+    // evaluate integrals in each domain
+    for (auto integral_ptr : integral_ptr_vec)
+    {
+        integral_ptr->evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x();
     }
 
 }

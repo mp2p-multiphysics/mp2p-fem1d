@@ -24,6 +24,7 @@ class IntegralLine2
     Vector3D integral_Ni_line2_Nj_line2_vec;
     Vector3D integral_Ni_line2_derivative_Nj_line2_x_vec;
     Vector3D integral_div_Ni_line2_dot_div_Nj_line2_vec;
+    Vector4D integral_Ni_line2_Nj_line2_derivative_Nj_line2_x_vec;
 
     // functions for computing integrals
     void evaluate_Ni_derivative();
@@ -32,6 +33,7 @@ class IntegralLine2
     void evaluate_integral_Ni_line2_Nj_line2();
     void evaluate_integral_Ni_line2_derivative_Nj_line2_x();
     void evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
+    void evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x();
 
     // default constructor
     IntegralLine2()
@@ -271,6 +273,39 @@ void IntegralLine2::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
     integral_div_Ni_line2_dot_div_Nj_line2_vec.push_back(integral_part_i_vec);
+
+    }
+
+}
+
+void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x()
+{
+    
+    // iterate for each domain element
+    for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
+    
+    // iterate for each test function combination
+    Vector3D integral_part_i_vec;
+    for (int indx_i = 0; indx_i < 2; indx_i++){  
+    Vector2D integral_part_ij_vec;
+    for (int indx_j = 0; indx_j < 2; indx_j++){
+    Vector1D integral_part_ijk_vec;
+    for (int indx_k = 0; indx_k < 2; indx_k++){
+
+        // iterate for each integration point
+        double integral_value = 0;
+        for (int indx_l = 0; indx_l < 2; indx_l++) 
+        {
+            integral_value += jacobian_determinant_vec[element_did][indx_l] * N_vec[element_did][indx_l][indx_i] * N_vec[element_did][indx_l][indx_j] * derivative_N_x_vec[element_did][indx_l][indx_k];
+        }
+        integral_part_ijk_vec.push_back(integral_value);
+    
+    }
+    integral_part_ij_vec.push_back(integral_part_ijk_vec);
+    }
+    integral_part_i_vec.push_back(integral_part_ij_vec);
+    }
+    integral_Ni_line2_Nj_line2_derivative_Nj_line2_x_vec.push_back(integral_part_i_vec);
 
     }
 
