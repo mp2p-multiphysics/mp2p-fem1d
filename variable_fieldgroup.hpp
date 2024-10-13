@@ -7,6 +7,16 @@
 
 class VariableFieldGroup
 {
+    /*
+
+    Groups variables that are applied to the same field.
+
+    Variables
+    =========
+    variable_ptr_vec_in : vector<VariableLine2*>
+        vector with pointers to VariableLine2 objects.
+    
+    */
 
     public:
 

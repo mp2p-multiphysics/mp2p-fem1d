@@ -7,6 +7,41 @@
 
 class IntegralLine2
 {
+    /*
+
+    Test function integrals (N) for line2 mesh elements.
+
+    Variables
+    =========
+    mesh_l2_in : MeshLine2Struct
+        struct with mesh data.
+
+    Functions
+    =========
+    evaluate_Ni_derivative : void
+        Calculates test functions and their derivatives.
+        Must be called before integrals are evaluated.
+    evaluate_integral_Ni : void
+        Calculates the integral of Ni.
+    evaluate_integral_derivative_Ni_x : void
+        Calculates the integral of d(Ni)/dx.
+    evaluate_integral_Ni_Nj : void
+        Calculates the integral of Ni * Nj.
+    evaluate_integral_Ni_derivative_Nj_x : void
+        Calculates the integral of Ni * d(Nj)/dx.
+    evaluate_integral_div_Ni_dot_div_Nj : void
+        Calculates the integral of div(Ni) dot div(Nj).
+    evaluate_integral_Ni_Nj_derivative_Nk_x : void
+        Calculates the integral of Ni * Nj * d(Nk)/dx.
+
+    Notes
+    ====
+    The calculated integrals are stored in nested vectors.
+    Values can be accessed from each vector using the following pattern:
+        integral_vec[element_gid][i][j]...
+    wherein element_gid is the global element ID and i, j, ... are indices.
+
+    */
 
     public:
     
@@ -19,21 +54,21 @@ class IntegralLine2
     Vector3D derivative_N_x_vec;
 
     // vectors with integrals
-    Vector2D integral_Ni_line2_vec;
-    Vector2D integral_derivative_Ni_line2_x_vec;
-    Vector3D integral_Ni_line2_Nj_line2_vec;
-    Vector3D integral_Ni_line2_derivative_Nj_line2_x_vec;
-    Vector3D integral_div_Ni_line2_dot_div_Nj_line2_vec;
-    Vector4D integral_Ni_line2_Nj_line2_derivative_Nk_line2_x_vec;
+    Vector2D integral_Ni_vec;
+    Vector2D integral_derivative_Ni_x_vec;
+    Vector3D integral_Ni_Nj_vec;
+    Vector3D integral_Ni_derivative_Nj_x_vec;
+    Vector3D integral_div_Ni_dot_div_Nj_vec;
+    Vector4D integral_Ni_Nj_derivative_Nk_x_vec;
 
     // functions for computing integrals
     void evaluate_Ni_derivative();
-    void evaluate_integral_Ni_line2();
-    void evaluate_integral_derivative_Ni_line2_x();
-    void evaluate_integral_Ni_line2_Nj_line2();
-    void evaluate_integral_Ni_line2_derivative_Nj_line2_x();
-    void evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
-    void evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x();
+    void evaluate_integral_Ni();
+    void evaluate_integral_derivative_Ni_x();
+    void evaluate_integral_Ni_Nj();
+    void evaluate_integral_Ni_derivative_Nj_x();
+    void evaluate_integral_div_Ni_dot_div_Nj();
+    void evaluate_integral_Ni_Nj_derivative_Nk_x();
 
     // default constructor
     IntegralLine2()
@@ -51,6 +86,20 @@ class IntegralLine2
 
 void IntegralLine2::evaluate_Ni_derivative()
 {
+    /*
+
+    Calculates test functions (N) and their derivatives.
+    Must be called before integrals are evaluated.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // integration points
     // dimensionless coordinates if element is scaled to [-1, 1]
@@ -141,9 +190,22 @@ void IntegralLine2::evaluate_Ni_derivative()
 
 }
 
-void IntegralLine2::evaluate_integral_Ni_line2()
+void IntegralLine2::evaluate_integral_Ni()
 {
-    
+    /*
+
+    Calculates the integral of Ni.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
     
@@ -160,14 +222,27 @@ void IntegralLine2::evaluate_integral_Ni_line2()
         integral_part_i_vec.push_back(integral_value);
     
     }
-    integral_Ni_line2_vec.push_back(integral_part_i_vec);
+    integral_Ni_vec.push_back(integral_part_i_vec);
 
     }
 
 }
 
-void IntegralLine2::evaluate_integral_derivative_Ni_line2_x()
+void IntegralLine2::evaluate_integral_derivative_Ni_x()
 {
+    /*
+
+    Calculates the integral of d(Ni)/dx.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
     
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
@@ -185,15 +260,28 @@ void IntegralLine2::evaluate_integral_derivative_Ni_line2_x()
         integral_part_i_vec.push_back(integral_value);
     
     }
-    integral_derivative_Ni_line2_x_vec.push_back(integral_part_i_vec);
+    integral_derivative_Ni_x_vec.push_back(integral_part_i_vec);
 
     }
 
 }
 
-void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2()
+void IntegralLine2::evaluate_integral_Ni_Nj()
 {
-    
+    /*
+
+    Calculates the integral of Ni * Nj.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
     
@@ -214,15 +302,28 @@ void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2()
     }
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
-    integral_Ni_line2_Nj_line2_vec.push_back(integral_part_i_vec);
+    integral_Ni_Nj_vec.push_back(integral_part_i_vec);
 
     }
 
 }
 
-void IntegralLine2::evaluate_integral_Ni_line2_derivative_Nj_line2_x()
+void IntegralLine2::evaluate_integral_Ni_derivative_Nj_x()
 {
-    
+    /*
+
+    Calculates the integral of Ni * d(Nj)/dx.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
     
@@ -243,15 +344,28 @@ void IntegralLine2::evaluate_integral_Ni_line2_derivative_Nj_line2_x()
     }
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
-    integral_Ni_line2_derivative_Nj_line2_x_vec.push_back(integral_part_i_vec);
+    integral_Ni_derivative_Nj_x_vec.push_back(integral_part_i_vec);
 
     }
 
 }
 
-void IntegralLine2::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
+void IntegralLine2::evaluate_integral_div_Ni_dot_div_Nj()
 {
-    
+    /*
+
+    Calculates the integral of div(Ni) dot div(Nj).
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
     
@@ -272,15 +386,28 @@ void IntegralLine2::evaluate_integral_div_Ni_line2_dot_div_Nj_line2()
     }
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
-    integral_div_Ni_line2_dot_div_Nj_line2_vec.push_back(integral_part_i_vec);
+    integral_div_Ni_dot_div_Nj_vec.push_back(integral_part_i_vec);
 
     }
 
 }
 
-void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x()
+void IntegralLine2::evaluate_integral_Ni_Nj_derivative_Nk_x()
 {
-    
+    /*
+
+    Calculates the integral of Ni * Nj * d(Nk)/dx.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate for each domain element
     for (int element_did = 0; element_did < mesh_l2_ptr->num_element_domain; element_did++){  
     
@@ -305,7 +432,7 @@ void IntegralLine2::evaluate_integral_Ni_line2_Nj_line2_derivative_Nk_line2_x()
     }
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
-    integral_Ni_line2_Nj_line2_derivative_Nk_line2_x_vec.push_back(integral_part_i_vec);
+    integral_Ni_Nj_derivative_Nk_x_vec.push_back(integral_part_i_vec);
 
     }
 

@@ -5,6 +5,22 @@
 
 class BoundaryPhysicsGroupVector
 {
+    /*
+
+    Groups BoundaryPhysicsGroup objects into a column vector.
+    Used in physics with systems of partial differential equations.
+
+    Variables
+    =========
+    boundary_physicsgroup_ptr_vec : vector<BoundaryPhysicsGroup*>
+        vector with pointers to BoundaryPhysicsGroup objects.
+    
+    Functions
+    =========
+    get_entry : BoundaryPhysicsGroup*
+        Returns the pointer to the BoundaryPhysicsGroup object at a given vector position.
+
+    */
 
     public:
 
@@ -37,6 +53,22 @@ class BoundaryPhysicsGroupVector
 
 BoundaryPhysicsGroup* BoundaryPhysicsGroupVector::get_entry(int vector_row)
 {
+    /*
+
+    Returns the pointer to the BoundaryPhysicsGroup object at a vector position.
+
+    Arguments
+    =========
+    vector_row : int
+        Row in column vector
+    
+    Returns
+    =======
+    boundary_physicsgroup_ptr : BoundaryPhysicsGroup*
+        Pointer to the BoundaryPhysicsGroup object at the specified row.
+
+    */
+    
     return boundary_physicsgroup_ptr_vec[vector_row];
 }
 

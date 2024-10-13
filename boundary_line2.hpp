@@ -15,6 +15,34 @@ struct BoundaryConfigLine2Struct
 
 class BoundaryLine2
 {
+    /*
+
+    Boundary conditions (BC) for line2 mesh elements.
+
+    Variables
+    =========
+    file_in_flux_str_in : string
+        Path to CSV file with data for flux-type BCs.
+    file_in_value_str_in : string
+        Path to CSV file with data for value-type BCs.
+
+    Functions
+    =========
+    set_boundarycondition : void
+        Assigns a BC type and parameters to a BC configuration ID.
+    set_boundarycondition_parameter : void
+        Assigns or modifies the parameters to a BC.
+
+    Notes
+    ====
+    Both CSV files must have the following columns:
+        global element ID where BC is applied
+        local element ID where BC is applied
+        BC configuration ID
+    Flux-type BCs add additional terms to the linearized equations (e.g., Neumann, Robin)
+    Value-type BCs completely replace the linearized equations (e.g., Dirichlet)
+
+    */
 
     public:
 
@@ -40,6 +68,7 @@ class BoundaryLine2
 
     // functions
     void set_boundarycondition(int boundaryconfig_id, std::string type_str, VectorDouble parameter_vec);
+    void set_boundarycondition_parameter(int boundaryconfig_id, VectorDouble parameter_vec);
 
     // default constructor
     BoundaryLine2()
@@ -112,9 +141,56 @@ class BoundaryLine2
 
 void BoundaryLine2::set_boundarycondition(int boundaryconfig_id, std::string type_str, VectorDouble parameter_vec)
 {
+    /*
+
+    Assigns a BC type and parameters to a BC configuration ID.
+
+    Arguments
+    =========
+    boundaryconfig_id : int
+        BC configuration ID.
+    type_str : string
+        Type of boundary condition.
+    parameter_vec : VectorDouble
+        vector with parameters for the BC.
+
+    Returns
+    =======
+    (none)
+
+    Notes
+    ====
+    type_str can be "neumann" or "robin" if boundaryconfig_id refers to flux-type BCs.
+    type_str can be "dirichlet" if boundaryconfig_id refers to value-type BCs.
+
+    */
 
     // modify struct properties
     boundaryconfig_vec[boundaryconfig_id].type_str = type_str;
+    boundaryconfig_vec[boundaryconfig_id].parameter_vec = parameter_vec;
+
+}
+
+void BoundaryLine2::set_boundarycondition_parameter(int boundaryconfig_id, VectorDouble parameter_vec)
+{
+    /*
+
+    Assigns or modifies the parameters to a BC.
+
+    Arguments
+    =========
+    boundaryconfig_id : int
+        BC configuration ID.
+    parameter_vec : VectorDouble
+        vector with parameters for the BC.
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // modify struct properties
     boundaryconfig_vec[boundaryconfig_id].parameter_vec = parameter_vec;
 
 }

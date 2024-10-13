@@ -7,6 +7,35 @@
 
 MeshLine2Struct initialize_mesh_line2_csv(std::string file_in_point_str, std::string file_in_element_str)
 {
+    /*
+
+    Creates a MeshLine2Struct from mesh point and element data.
+
+    Arguments
+    =========
+    file_in_point_str : string
+        Path to CSV file with data for mesh points.
+    file_in_element_str : string
+        Path to CSV file with data for mesh elements.
+
+    Returns
+    =======
+    mesh_l2 : MeshLine2Struct
+        struct with points and elements of mesh.
+
+    Notes
+    ====
+    The CSV file with point data must have the following columns:
+        global point ID
+        x-coordinate of point
+    The CSV file with element data must have the following columns:
+        global element ID
+        global point ID of local point 0
+        global point ID of local point 1
+    Point 0 and 1 refer to the left and right points of the each element.
+
+    */
+
 
     // read file with points
     std::ifstream file_in_point_stream(file_in_point_str);

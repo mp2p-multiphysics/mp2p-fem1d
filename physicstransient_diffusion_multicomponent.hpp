@@ -17,6 +17,47 @@
 
 class PhysicsTransientDiffusionMulticomponent : public PhysicsTransientBase
 {
+    /*
+
+    Multi-component transient diffusion equation.   
+
+    a * du/dt = -div(-b * grad(u)) + c wherein:
+
+    a1 * d(u1)/dt = -div(-b11 * grad(u1) - b12 * grad(u2) - b13 * grad(u3) - ...) + c1
+    a2 * d(u2)/dt = -div(-b21 * grad(u1) - b22 * grad(u2) - b23 * grad(u3) - ...) + c2
+    a3 * d(u3)/dt = -div(-b31 * grad(u1) - b32 * grad(u2) - b33 * grad(u3) - ...) + c3
+    ...
+
+    Variables
+    =========
+    mesh_physics_in : MeshPhysicsGroup
+        Meshes where this physics is applied to.
+    boundary_physics_ptr_vec_in : BoundaryPhysicsGroupVector
+        Boundary conditions pertinent to this physics.
+    integral_physics_in : IntegralPhysicsGroup
+        Test function integrals of the meshes.
+    value_field_ptr_vec_in : VariableFieldGroupVector
+        u in a * du/dt = -div(-b * grad(u)) + c.
+        This will be solved for by the matrix equation.
+    derivativecoefficient_field_ptr_vec_in : ScalarFieldGroupVector
+        a in a * du/dt = -div(-b * grad(u)) + c.
+    diffusioncoefficient_field_ptr_mat_in : ScalarFieldGroupMatrix
+        b in a * du/dt = -div(-b * grad(u)) + c.
+    generationcoefficient_field_ptr_vec_in : ScalarFieldGroupVector
+        c in a * du/dt = -div(-b * grad(u)) + c.
+
+    Functions
+    =========
+    matrix_fill : void
+        Fill up the matrix equation Ax = b with entries as dictated by the physics. 
+    set_start_row : void
+        Sets the starting row in A and b where entries are filled up.
+    get_start_row : int
+        Returns the starting row.
+    get_variable_field_ptr_vec() : vector<VariableFieldGroup*>
+        Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+
+    */
 
     public:
 
@@ -77,9 +118,9 @@ class PhysicsTransientDiffusionMulticomponent : public PhysicsTransientBase
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
-        integral_physics_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
-        integral_physics_ptr->evaluate_integral_Ni_line2_Nj_line2();
-        integral_physics_ptr->evaluate_integral_Ni_line2();
+        integral_physics_ptr->evaluate_integral_div_Ni_dot_div_Nj();
+        integral_physics_ptr->evaluate_integral_Ni_Nj();
+        integral_physics_ptr->evaluate_integral_Ni();
 
     }
 
@@ -100,6 +141,30 @@ void PhysicsTransientDiffusionMulticomponent::matrix_fill
     Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
 )
 {
+    /*
+
+    Fill up the matrix equation Ax(t+1) = Cx(t) + d with entries as dictated by the physics. 
+
+    Arguments
+    =========
+    a_mat : Eigen::SparseMatrix<double>
+        A in Ax(t+1) = Cx(t) + d.
+    c_mat : Eigen::SparseMatrix<double>
+        C in Ax(t+1) = Cx(t) + d.
+    d_vec : Eigen::VectorXd
+        d in Ax(t+1) = Cx(t) + d.
+    x_vec : Eigen::VectorXd
+        x(t+1) in Ax(t+1) = Cx(t) + d.
+    x_last_timestep_vec : Eigen::VectorXd
+        x(t) in Ax(t+1) = Cx(t) + d.
+    dt : double
+        Length of the timestep.
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through each domain covered by the mesh
     for (int indx_d = 0; indx_d < mesh_physics_ptr->mesh_ptr_vec.size(); indx_d++)
@@ -223,12 +288,12 @@ void PhysicsTransientDiffusionMulticomponent::matrix_fill_domain
 
             // calculate a_mat coefficients
             a_mat.coeffRef(mat_row, mat_col) += (
-                (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j] +
-                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j]
+                (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[element_did][indx_i][indx_j] +
+                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[element_did][indx_i][indx_j]
             );
 
             // calculate c_mat coefficients
-            c_mat.coeffRef(mat_row, mat_col) += (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_line2_Nj_line2_vec[element_did][indx_i][indx_j];
+            c_mat.coeffRef(mat_row, mat_col) += (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[element_did][indx_i][indx_j];
 
         }}
 
@@ -236,7 +301,7 @@ void PhysicsTransientDiffusionMulticomponent::matrix_fill_domain
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + adjust_start_row +fid_arr[indx_i];
-            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[element_did][indx_i];
         }
 
     }
@@ -373,17 +438,65 @@ void PhysicsTransientDiffusionMulticomponent::matrix_fill_domain
 
 void PhysicsTransientDiffusionMulticomponent::set_start_row(int start_row_in)
 {
+    /*
+
+    Sets the starting row in A and b where entries are filled up.
+
+    Arguments
+    =========
+    start_row_in : int
+        Starting row in A and b.
+
+    Returns
+    =======
+    (none)
+
+    */
+
     start_row = start_row_in;
+
 }
 
 int PhysicsTransientDiffusionMulticomponent::get_start_row()
 {
+    /*
+
+    Returns the starting row.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    start_row : int
+        Starting row in A and b.
+
+    */
+
     return start_row;
+
 }
 
 std::vector<VariableFieldGroup*> PhysicsTransientDiffusionMulticomponent::get_variable_field_ptr_vec()
 {
+    /*
+
+    Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    variable_field_ptr : vector<VariableFieldGroup*>
+        Vector containing pointers to VariableFieldGroup objects.
+
+    */
+
     return variable_field_ptr_vec;
+
 }
 
 #endif

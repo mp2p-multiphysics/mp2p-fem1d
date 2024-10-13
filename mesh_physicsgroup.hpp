@@ -5,6 +5,16 @@
 
 class MeshPhysicsGroup
 {
+    /*
+
+    Groups mesh domains that are used in the same physics.
+
+    Variables
+    =========
+    mesh_ptr_vec_in : vector<MeshLine2*>
+        vector with pointers to MeshLine2 objects.
+    
+    */
 
     public:
 

@@ -5,6 +5,16 @@
 
 class BoundaryPhysicsGroup
 {
+    /*
+
+    Groups boundary conditions (BC) that are used in the same physics.
+
+    Variables
+    =========
+    boundary_ptr_vec_in : vector<BoundaryLine2*>
+        vector with pointers to BoundaryLine2 objects.
+    
+    */
 
     public:
 

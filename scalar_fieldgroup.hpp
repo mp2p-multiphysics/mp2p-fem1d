@@ -7,6 +7,16 @@
 
 class ScalarFieldGroup
 {
+    /*
+
+    Groups scalars that are applied to the same field.
+
+    Variables
+    =========
+    scalar_ptr_vec_in : vector<ScalarLine2*>
+        vector with pointers to ScalarLine2 objects.
+    
+    */
 
     public:
 

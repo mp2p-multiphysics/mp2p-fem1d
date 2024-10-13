@@ -12,6 +12,40 @@
 
 class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 {
+    /*
+
+    Single-component steady-state diffusion equation.    
+    
+    0 = -div(-b * grad(u)) + c
+
+    Variables
+    =========
+    mesh_physics_in : MeshPhysicsGroup
+        Meshes where this physics is applied to.
+    boundary_physics_in : BoundaryPhysicsGroup
+        Boundary conditions pertinent to this physics.
+    integral_physics_in : IntegralPhysicsGroup
+        Test function integrals of the meshes.
+    value_field_in : VariableFieldGroup
+        u in 0 = -div(-b * grad(u)) + c.
+        This will be solved for by the matrix equation.
+    diffusioncoefficient_field_in : ScalarFieldGroup
+        b in 0 = -div(-b * grad(u)) + c.
+    generationcoefficient_field_in : ScalarFieldGroup
+        c in 0 = -div(-b * grad(u)) + c.
+
+    Functions
+    =========
+    matrix_fill : void
+        Fill up the matrix equation Ax = b with entries as dictated by the physics. 
+    set_start_row : void
+        Sets the starting row in A and b where entries are filled up.
+    get_start_row : int
+        Returns the starting row.
+    get_variable_field_ptr_vec() : vector<VariableFieldGroup*>
+        Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+
+    */
 
     public:
 
@@ -66,8 +100,8 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 
         // calculate integrals
         integral_physics_ptr->evaluate_Ni_derivative();
-        integral_physics_ptr->evaluate_integral_div_Ni_line2_dot_div_Nj_line2();
-        integral_physics_ptr->evaluate_integral_Ni_line2();
+        integral_physics_ptr->evaluate_integral_div_Ni_dot_div_Nj();
+        integral_physics_ptr->evaluate_integral_Ni();
 
     }
 
@@ -86,6 +120,24 @@ void PhysicsSteadyDiffusion::matrix_fill
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
 )
 {
+    /*
+
+    Fill up the matrix equation Ax = b with entries as dictated by the physics. 
+
+    Arguments
+    =========
+    a_mat : Eigen::SparseMatrix<double>
+        A in Ax = b.
+    b_vec : Eigen::VectorXd
+        b in Ax = b.
+    x_vec : Eigen::VectorXd
+        x in Ax = b.
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through each domain covered by the mesh
     for (int indx_d = 0; indx_d < mesh_physics_ptr->mesh_ptr_vec.size(); indx_d++)
@@ -154,14 +206,14 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
         for (int indx_j = 0; indx_j < 2; indx_j++){
             int mat_row = start_row + fid_arr[indx_i];
             int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
-            a_mat.coeffRef(mat_row, mat_col) += diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_line2_dot_div_Nj_line2_vec[element_did][indx_i][indx_j];
+            a_mat.coeffRef(mat_row, mat_col) += diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[element_did][indx_i][indx_j];
         }}
 
         // calculate b_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_line2_vec[element_did][indx_i];
+            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[element_did][indx_i];
         }
 
     }
@@ -297,17 +349,65 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
 
 void PhysicsSteadyDiffusion::set_start_row(int start_row_in)
 {
+    /*
+
+    Sets the starting row in A and b where entries are filled up.
+
+    Arguments
+    =========
+    start_row_in : int
+        Starting row in A and b.
+
+    Returns
+    =======
+    (none)
+
+    */
+
     start_row = start_row_in;
+
 }
 
 int PhysicsSteadyDiffusion::get_start_row()
 {
+    /*
+
+    Returns the starting row.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    start_row : int
+        Starting row in A and b.
+
+    */
+
     return start_row;
+
 }
 
 std::vector<VariableFieldGroup*> PhysicsSteadyDiffusion::get_variable_field_ptr_vec()
 {
+    /*
+
+    Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    variable_field_ptr : vector<VariableFieldGroup*>
+        Vector containing pointers to VariableFieldGroup objects.
+
+    */
+    
     return variable_field_ptr_vec;
+
 }
 
 #endif

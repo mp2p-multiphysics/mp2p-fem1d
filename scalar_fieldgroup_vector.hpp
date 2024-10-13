@@ -5,6 +5,22 @@
 
 class ScalarFieldGroupVector
 {
+    /*
+
+    Groups ScalarFieldGroup objects into a column vector.
+    Used in physics with systems of partial differential equations.
+
+    Variables
+    =========
+    scalar_fieldgroup_ptr_vec_in : vector<ScalarFieldGroup*>
+        vector of pointers to ScalarFieldGroup objects.
+    
+    Functions
+    =========
+    get_entry : ScalarFieldGroup*
+        Returns the pointer to the ScalarFieldGroup object at a given vector position.
+
+    */
 
     public:
 
@@ -37,7 +53,24 @@ class ScalarFieldGroupVector
 
 ScalarFieldGroup* ScalarFieldGroupVector::get_entry(int vector_row)
 {
+    /*
+
+    Returns the pointer to the ScalarFieldGroup object at a given vector position.
+
+    Arguments
+    =========
+    vector_row : int
+        Row in matrix.
+    
+    Returns
+    =========
+    scalar_fieldgroup_ptr : ScalarFieldGroup*
+        Pointer to the ScalarFieldGroup object.
+
+    */
+    
     return scalar_fieldgroup_ptr_vec[vector_row];
+
 }
 
 #endif

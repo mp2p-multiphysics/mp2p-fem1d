@@ -5,6 +5,24 @@
 
 class VariableFieldGroupVector
 {
+    /*
+
+    Groups VariableFieldGroup objects into a column vector.
+    Used in physics with systems of partial differential equations.
+
+    Variables
+    =========
+    variable_fieldgroup_ptr_vec_in : vector<VariableFieldGroup*>
+        vector of pointers to VariableFieldGroup objects.
+    
+    Functions
+    =========
+    get_entry : VariableFieldGroup*
+        Returns the pointer to the VariableFieldGroup object at a given vector position.
+    get_vector : vector<VariableFieldGroup*>
+        Returns the vector with the VariableFieldGroup objects.
+
+    */
 
     public:
 
@@ -38,12 +56,45 @@ class VariableFieldGroupVector
 
 VariableFieldGroup* VariableFieldGroupVector::get_entry(int vector_row)
 {
+    /*
+
+    Returns the pointer to the VariableFieldGroup object at a given vector position.
+
+    Arguments
+    =========
+    vector_row : int
+        Row in matrix.
+    
+    Returns
+    =========
+    variable_fieldgroup_ptr : VariableFieldGroup*
+        Pointer to the VariableFieldGroup object.
+
+    */
+
     return variable_fieldgroup_ptr_vec[vector_row];
+
 }
 
 std::vector<VariableFieldGroup*> VariableFieldGroupVector::get_vector()
 {
+    /*
+
+    Returns the vector with the VariableFieldGroup objects.
+
+    Arguments
+    =========
+    (none)
+    
+    Returns
+    =========
+    variable_fieldgroup_ptr_vec : vector<VariableFieldGroup*>
+        Vector with the VariableFieldGroup objects.
+
+    */
+    
     return variable_fieldgroup_ptr_vec;
+
 }
 
 #endif

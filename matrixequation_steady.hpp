@@ -8,6 +8,28 @@
 
 class MatrixEquationSteady
 {
+    /*
+
+    Represents the matrix equation (system of linear equations) Ax = b for use in steady-state problems.
+
+    Variables
+    =========
+    physics_ptr_vec_in : vector<PhysicsSteadyBase*>
+        vector with steady-state physics classes.
+
+    Functions
+    =========
+    iterate_solution : void
+        Solves for x in Ax = b.
+        Uses the currently stored values in A and b.
+    store_solution : void
+        Transfers the solutions in x into variable objects.
+
+    Notes
+    =====
+    In the code; A, x, and b are referred to as a_mat, x_vec, and b_vec respectively.
+
+    */
 
     public:
 
@@ -146,6 +168,20 @@ class MatrixEquationSteady
 
 void MatrixEquationSteady::iterate_solution()
 {
+    /*
+    
+    Solves for x in Ax = b.
+    Uses the currently stored values in A and b.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // fill up a_mat and b_vec with each physics
     for (auto physics_ptr : physics_ptr_vec)
@@ -164,6 +200,19 @@ void MatrixEquationSteady::iterate_solution()
 
 void MatrixEquationSteady::store_solution()
 {
+    /*
+    
+    Transfers the solutions in x into variable objects.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through each variable field
     for (auto variable_field_ptr : variable_field_ptr_vec)

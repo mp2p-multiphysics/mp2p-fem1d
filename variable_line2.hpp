@@ -6,6 +6,23 @@
 
 class VariableLine2
 {
+    /*
+
+    Variable applied over line2 mesh elements.
+
+    Variables
+    =========
+    mesh_l2_in : MeshLine2Struct
+        Mesh where variable value is applied.
+    u_init_in : double
+        Initial value of the variable.
+
+    Functions
+    =========
+    output_csv : void
+        Outputs a CSV file with the values of the variable.
+
+    */
 
     public:
 
@@ -48,6 +65,24 @@ class VariableLine2
 
 void VariableLine2::output_csv(std::string file_out_str)
 {
+    /*
+
+    Outputs a CSV file with the values of the variable.
+
+    Arguments
+    =========
+    file_out_str : string
+        Path to CSV file.
+
+    Returns
+    =======
+    (none)
+
+    Notes
+    =====
+    This function is intended to be used with steady-state simulations.
+
+    */
 
     // initialize file stream
     std::ofstream file_out_stream(file_out_str);
@@ -65,6 +100,27 @@ void VariableLine2::output_csv(std::string file_out_str)
 
 void VariableLine2::output_csv(std::string file_out_base_str, int ts)
 {
+    /*
+
+    Outputs a CSV file with the values of the variable.
+
+    Arguments
+    =========
+    file_out_base_str : string
+        Path to CSV file with base file name.
+    ts : int
+        Timestep number.
+
+    Returns
+    =======
+    (none)
+
+    Notes
+    =====
+    file_out_base_str should have an asterisk '*', which will be replaced with ts.
+    This function is intended to be used with transient simulations.
+
+    */
 
     // split filename at '*'
     // will be replaced with timestep later

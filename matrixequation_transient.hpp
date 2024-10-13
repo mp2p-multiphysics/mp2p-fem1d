@@ -8,6 +8,31 @@
 
 class MatrixEquationTransient
 {
+    /*
+
+    Represents the matrix equation (system of linear equations) Ax = b for use in transient problems.
+
+    Variables
+    =========
+    physics_ptr_vec_in : vector<PhysicsTransientBase*>
+        vector with transient physics classes.
+
+    Functions
+    =========
+    set_last_timestep_solution : void
+        Sets the current value of x(t+1) to x(t) for use in the next timestep.
+    iterate_solution : void
+        Solves for x in Ax = b.
+        Uses the currently stored values in A and b.
+    store_solution : void
+        Transfers the solutions in x into variable objects.
+
+    Notes
+    =====
+    The equation Ax(t+1) = b is expanded into Ax(t+1) = Cx(t) + d for convenience.
+    In the code; A, x, C, and d are referred to as a_mat, x_vec, c_mat, and d_vec respectively.
+
+    */
 
     public:
 
@@ -153,11 +178,41 @@ class MatrixEquationTransient
 
 void MatrixEquationTransient::set_last_timestep_solution()
 {
+    /*
+    
+    Sets the current value of x(t+1) to x(t) for use in the next timestep.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
+
     x_last_timestep_vec = x_vec;
+
 }
 
 void MatrixEquationTransient::iterate_solution(double dt)
 {
+    /*
+    
+    Solves for x in Ax = b.
+    Uses the currently stored values in A and b.
+
+    Arguments
+    =========
+    dt : double
+        Length of the timestep.
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // fill up a_mat, c_mat, and d_vec with each physics
     for (auto physics_ptr : physics_ptr_vec)
@@ -177,6 +232,19 @@ void MatrixEquationTransient::iterate_solution(double dt)
 
 void MatrixEquationTransient::store_solution()
 {
+    /*
+    
+    Transfers the solutions in x into variable objects.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through each variable field
     for (auto variable_field_ptr : variable_field_ptr_vec)
