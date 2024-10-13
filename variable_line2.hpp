@@ -117,7 +117,7 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
 
     Notes
     =====
-    file_out_base_str should have an asterisk '*', which will be replaced with ts.
+    file_out_base_str must have an asterisk '*', which will be replaced with ts.
     This function is intended to be used with transient simulations.
 
     */
