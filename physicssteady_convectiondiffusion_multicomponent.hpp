@@ -85,7 +85,7 @@ class PhysicsSteadyConvectionDiffusionMulticomponent : public PhysicsSteadyBase
     void matrix_fill_domain
     (
         Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-        MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
+        MeshLine2Struct *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
         VariableFieldGroup *value_field_ptr,
         ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *generationcoefficient_ptr
     );
@@ -117,7 +117,7 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill
         {
             
             // subset the boundary conditions
-            BoundaryLine2Struct *boundary_ptr = boundary_physics_ptr_vec.get_entry(indx_r)->boundary_ptr_vec[indx_d];
+            BoundaryLine2 *boundary_ptr = boundary_physics_ptr_vec.get_entry(indx_r)->boundary_ptr_vec[indx_d];
 
             // subset value and generation coefficient
             VariableFieldGroup *value_field_ptr = value_field_ptr_vec.get_entry(indx_r);
@@ -145,7 +145,7 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill
 void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-    MeshLine2Struct *mesh_ptr, BoundaryLine2Struct *boundary_ptr, IntegralLine2 *integral_ptr,
+    MeshLine2Struct *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
     VariableFieldGroup *value_field_ptr,
     ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *velocity_x_ptr, ScalarLine2 *generationcoefficient_ptr
 )
@@ -258,8 +258,8 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
         int ea_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
         // identify boundary type
-        int config_id = boundary_ptr->element_flux_config_id_vec[boundary_id];
-        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundary_config_vec[config_id];
+        int config_id = boundary_ptr->element_flux_boundaryconfig_id_vec[boundary_id];
+        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundaryconfig_vec[config_id];
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
@@ -268,11 +268,19 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
-        if (bcl2.boundary_type_str == "neumann")
+        if (bcl2.type_str == "neumann")
         {
             // add to b_vec
             int mat_row = start_row + adjust_start_row + fid_arr[ea_lid];
-            b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
+            b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
+        }
+        else if (bcl2.type_str == "robin")
+        {
+            // add to a_mat and b_vec
+            int mat_row = start_row + adjust_start_row + fid_arr[ea_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[ea_lid];
+            b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
+            a_mat.coeffRef(mat_row, mat_col) += bcl2.parameter_vec[1];
         }
 
     }
@@ -331,8 +339,8 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
         int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
         
         // identify boundary type
-        int config_id = boundary_ptr->element_value_config_id_vec[boundary_id];
-        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundary_config_vec[config_id];
+        int config_id = boundary_ptr->element_value_boundaryconfig_id_vec[boundary_id];
+        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundaryconfig_vec[config_id];
 
         // get field ID of concentration points
         // used for getting matrix rows and columns
@@ -341,7 +349,7 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
-        if (bcl2.boundary_type_str == "dirichlet")
+        if (bcl2.type_str == "dirichlet")
         {
 
             // set a_mat and b_vec
@@ -351,7 +359,7 @@ void PhysicsSteadyConvectionDiffusionMulticomponent::matrix_fill_domain
             if (ea_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
-                b_vec.coeffRef(mat_row) += bcl2.boundary_parameter_vec[0];
+                b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
             }
 
         }
