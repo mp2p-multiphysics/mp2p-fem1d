@@ -37,7 +37,7 @@ class BoundaryLine2
     ====
     Both CSV files must have the following columns:
         global element ID where BC is applied
-        local element ID where BC is applied
+        local point ID where BC is applied (0 or 1)
         BC configuration ID
     Flux-type BCs add additional terms to the linearized equations (e.g., Neumann, Robin)
     Value-type BCs completely replace the linearized equations (e.g., Dirichlet)
