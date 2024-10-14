@@ -289,7 +289,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get local ID of point where boundary is applied
-        int ea_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
         // identify boundary type
         int config_id = boundary_ptr->element_flux_boundaryconfig_id_vec[boundary_id];
@@ -305,14 +305,14 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         if (bcl2.type_str == "neumann")
         {
             // add to d_vec
-            int mat_row = start_row + fid_arr[ea_lid];
+            int mat_row = start_row + fid_arr[pa_lid];
             d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
         }
         else if (bcl2.type_str == "robin")
         {
             // add to a_mat and b_vec
-            int mat_row = start_row + fid_arr[ea_lid];
-            int mat_col = value_field_ptr->start_col + fid_arr[ea_lid];
+            int mat_row = start_row + fid_arr[pa_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
             a_mat.coeffRef(mat_row, mat_col) += bcl2.parameter_vec[1];
         }
@@ -335,7 +335,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get local ID of point where boundary is applied
-        int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
 
         // get field ID of concentration points
         // used for getting matrix rows and columns
@@ -345,9 +345,9 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
         // erase entire row
         // -1 values indicate invalid points
-        if (ea_lid != -1)
+        if (pa_lid != -1)
         {
-            int mat_row = start_row + fid_arr[ea_lid];
+            int mat_row = start_row + fid_arr[pa_lid];
             a_mat.row(mat_row) *= 0.;
             c_mat.row(mat_row) *= 0.;
             d_vec.coeffRef(mat_row) = 0.;
@@ -371,7 +371,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
         // get local ID of point where boundary is applied
-        int ea_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
         
         // identify boundary type
         int config_id = boundary_ptr->element_value_boundaryconfig_id_vec[boundary_id];
@@ -389,9 +389,9 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
 
             // set a_mat and d_vec
             // -1 values indicate invalid points
-            int mat_row = start_row + fid_arr[ea_lid];
-            int mat_col = value_field_ptr->start_col + fid_arr[ea_lid];
-            if (ea_lid != -1)
+            int mat_row = start_row + fid_arr[pa_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
+            if (pa_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
                 d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
