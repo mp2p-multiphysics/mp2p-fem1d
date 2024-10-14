@@ -14,6 +14,7 @@
 #include "boundary_line2.hpp"
 #include "boundary_physicsgroup_vector.hpp"
 #include "boundary_physicsgroup.hpp"
+#include "container_typedef.hpp"
 #include "initialize_mesh_line2_csv.hpp"
 #include "integral_line2.hpp"
 #include "integral_physicsgroup.hpp"
