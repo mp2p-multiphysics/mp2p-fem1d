@@ -9,7 +9,7 @@ class IntegralLine2
 {
     /*
 
-    Test function integrals (N) for line2 mesh elements.
+    Test function (N) integrals for line2 mesh elements.
 
     Variables
     =========
