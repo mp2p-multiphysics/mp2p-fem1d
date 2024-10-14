@@ -88,7 +88,7 @@ void VariableLine2::output_csv(std::string file_out_str)
     std::ofstream file_out_stream(file_out_str);
 
     // write to file
-    file_out_stream << "id,pos_x,value\n";
+    file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
         file_out_stream << mesh_l2_ptr->point_gid_vec[point_did] << ",";
@@ -144,7 +144,7 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
     std::ofstream file_out_stream(file_out_str);
 
     // write to file
-    file_out_stream << "id,pos_x,value\n";
+    file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
         file_out_stream << mesh_l2_ptr->point_gid_vec[point_did] << ",";
