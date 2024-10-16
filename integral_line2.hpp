@@ -38,8 +38,8 @@ class IntegralLine2
     ====
     The calculated integrals are stored in nested vectors.
     Values can be accessed from each vector using the following pattern:
-        integral_vec[element_gid][i][j]...
-    wherein element_gid is the global element ID and i, j, ... are indices.
+        integral_vec[element_did][i][j]...
+    wherein element_gid is the domain element ID and i, j, ... are indices.
 
     */
 

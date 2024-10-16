@@ -373,7 +373,7 @@ void PhysicsTransientConvectionDiffusionMulticomponent::matrix_fill_domain
             int mat_row = start_row + adjust_start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += bcl2.parameter_vec[1];
+            a_mat.coeffRef(mat_row, mat_col) += -bcl2.parameter_vec[1];
         }
 
     }
