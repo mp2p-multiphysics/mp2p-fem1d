@@ -246,9 +246,9 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
             int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
 
             // calculate velocity derivative
-            double dvelx_dx = 0;
+            double integral_Ni_Nj_dvelx_dx = 0;
             for (int indx_k = 0; indx_k < 2; indx_k++){
-                dvelx_dx += velx_arr[indx_k]*integral_ptr->integral_Ni_Nj_derivative_Nk_x_vec[element_did][indx_i][indx_j][indx_k];
+                integral_Ni_Nj_dvelx_dx += velx_arr[indx_k]*integral_ptr->integral_Ni_Nj_derivative_Nk_x_vec[element_did][indx_i][indx_j][indx_k];
             }
 
             // fill up a_mat coefficients
@@ -256,7 +256,7 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
                 (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[element_did][indx_i][indx_j] +
                 diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[element_did][indx_i][indx_j] +
                 velx_arr[indx_i]*integral_ptr->integral_Ni_derivative_Nj_x_vec[element_did][indx_i][indx_j] +
-                dvelx_dx
+                integral_Ni_Nj_dvelx_dx
             );
 
             // fill up c_mat coefficients
@@ -288,6 +288,16 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
         int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
+        // get domain ID of points
+        // used for getting properties and integrals
+        int p0_did = mesh_ptr->point_gid_to_did_map[p0_gid];
+        int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
+
+        // get velocity of points around element
+        double velx_p0 = velocity_x_ptr->point_value_vec[p0_did];
+        double velx_p1 = velocity_x_ptr->point_value_vec[p1_did];
+        double velx_arr[2] = {velx_p0, velx_p1};
+
         // get local ID of point where boundary is applied
         int pa_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
@@ -304,17 +314,31 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_domain
         // apply boundary condition
         if (bcl2.type_str == "neumann")
         {
+            
+            // calculate dot product of velocity and outward normal
+            // negative of velocity if coming from the left
+            double vel_dot_norm = (2*(double)pa_lid - 1)*velx_arr[pa_lid];
+
             // add to d_vec
             int mat_row = start_row + fid_arr[pa_lid];
+            int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
+            a_mat.coeffRef(mat_row, mat_col) += -vel_dot_norm;
+
         }
         else if (bcl2.type_str == "robin")
         {
+            
+            // calculate dot product of velocity and outward normal
+            // negative of velocity if coming from the left
+            double vel_dot_norm = (2*(double)pa_lid - 1)*velx_arr[pa_lid];
+            
             // add to a_mat and b_vec
             int mat_row = start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             d_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += -bcl2.parameter_vec[1];
+            a_mat.coeffRef(mat_row, mat_col) += -vel_dot_norm - bcl2.parameter_vec[1];
+            
         }
 
     }
