@@ -120,7 +120,7 @@ class PhysicsSteadyDiffusionMulticomponent : public PhysicsSteadyBase
     void matrix_fill_domain
     (
         Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-        MeshLine2Struct *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
+        MeshLine2 *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
         VariableFieldGroup *value_field_ptr,
         ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
@@ -152,12 +152,12 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill
     */
 
     // iterate through each domain covered by the mesh
-    for (int indx_d = 0; indx_d < mesh_physics_ptr->mesh_ptr_vec.size(); indx_d++)
+    for (int indx_d = 0; indx_d < mesh_physics_ptr->mesh_l2_ptr_vec.size(); indx_d++)
     {
 
         // subset the mesh and integrals
-        MeshLine2Struct *mesh_ptr = mesh_physics_ptr->mesh_ptr_vec[indx_d];
-        IntegralLine2 *integral_ptr = integral_physics_ptr->integral_ptr_vec[indx_d];        
+        MeshLine2 *mesh_ptr = mesh_physics_ptr->mesh_l2_ptr_vec[indx_d];
+        IntegralLine2 *integral_ptr = integral_physics_ptr->integral_l2_ptr_vec[indx_d];        
 
         // indx_r - row in diffusion matrix (diffusion equation)
         // indx_c - column in diffusion matrix (variable)
@@ -167,7 +167,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill
         {
             
             // subset the boundary conditions
-            BoundaryLine2 *boundary_ptr = boundary_physics_ptr_vec.get_entry(indx_r)->boundary_ptr_vec[indx_d];
+            BoundaryLine2 *boundary_ptr = boundary_physics_ptr_vec.get_entry(indx_r)->boundary_l2_ptr_vec[indx_d];
 
             // subset value and generation coefficient
             VariableFieldGroup *value_field_ptr = value_field_ptr_vec.get_entry(indx_r);
@@ -195,7 +195,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill
 void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
 (
     Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-    MeshLine2Struct *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
+    MeshLine2 *mesh_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
     VariableFieldGroup *value_field_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
@@ -288,7 +288,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
 
         // identify boundary type
         int config_id = boundary_ptr->element_flux_boundaryconfig_id_vec[boundary_id];
-        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundaryconfig_vec[config_id];
+        BoundaryConfigStruct boundaryconfig = boundary_ptr->boundaryconfig_vec[config_id];
 
         // get field ID of value points
         // used for getting matrix rows and columns
@@ -297,19 +297,19 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
-        if (bcl2.type_str == "neumann")
+        if (boundaryconfig.type_str == "neumann")
         {
             // add to b_vec
             int mat_row = start_row + adjust_start_row + fid_arr[pa_lid];
-            b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
+            b_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
         }
-        else if (bcl2.type_str == "robin")
+        else if (boundaryconfig.type_str == "robin")
         {
             // add to a_mat and b_vec
             int mat_row = start_row + adjust_start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
-            b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += -bcl2.parameter_vec[1];
+            b_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
+            a_mat.coeffRef(mat_row, mat_col) += -boundaryconfig.parameter_vec[1];
         }
 
     }
@@ -369,7 +369,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
         
         // identify boundary type
         int config_id = boundary_ptr->element_value_boundaryconfig_id_vec[boundary_id];
-        BoundaryConfigLine2Struct bcl2 = boundary_ptr->boundaryconfig_vec[config_id];
+        BoundaryConfigStruct boundaryconfig = boundary_ptr->boundaryconfig_vec[config_id];
 
         // get field ID of value points
         // used for getting matrix rows and columns
@@ -378,7 +378,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
-        if (bcl2.type_str == "dirichlet")
+        if (boundaryconfig.type_str == "dirichlet")
         {
 
             // set a_mat and b_vec
@@ -388,7 +388,7 @@ void PhysicsSteadyDiffusionMulticomponent::matrix_fill_domain
             if (pa_lid != -1)
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
-                b_vec.coeffRef(mat_row) += bcl2.parameter_vec[0];
+                b_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
             }
 
         }

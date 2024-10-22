@@ -11,7 +11,7 @@ class BoundaryPhysicsGroup
 
     Variables
     =========
-    boundary_ptr_vec_in : vector<BoundaryLine2*>
+    boundary_l2_ptr_vec_in : vector<BoundaryLine2*>
         vector with pointers to BoundaryLine2 objects.
     
     */
@@ -19,7 +19,7 @@ class BoundaryPhysicsGroup
     public:
 
     // vector with boundaries in group
-    std::vector<BoundaryLine2*> boundary_ptr_vec;
+    std::vector<BoundaryLine2*> boundary_l2_ptr_vec;
 
     // default constructor
     BoundaryPhysicsGroup()
@@ -28,9 +28,9 @@ class BoundaryPhysicsGroup
     }
 
     // constructor
-    BoundaryPhysicsGroup(std::vector<BoundaryLine2*> boundary_ptr_vec_in)
+    BoundaryPhysicsGroup(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
     {
-        boundary_ptr_vec = boundary_ptr_vec_in;
+        boundary_l2_ptr_vec = boundary_l2_ptr_vec_in;
     }
 
 };

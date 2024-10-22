@@ -11,7 +11,7 @@ class IntegralPhysicsGroup
 
     Variables
     =========
-    integral_ptr_vec_in : vector<IntegralLine2*>
+    integral_l2_ptr_vec_in : vector<IntegralLine2*>
         vector with pointers to BoundaryLine2 objects.
 
     Functions
@@ -38,7 +38,7 @@ class IntegralPhysicsGroup
     public:
 
     // variables
-    std::vector<IntegralLine2*> integral_ptr_vec;
+    std::vector<IntegralLine2*> integral_l2_ptr_vec;
 
     // functions
     void evaluate_Ni_derivative();
@@ -56,9 +56,9 @@ class IntegralPhysicsGroup
     }
 
     // constructor
-    IntegralPhysicsGroup(std::vector<IntegralLine2*> integral_ptr_vec_in)
+    IntegralPhysicsGroup(std::vector<IntegralLine2*> integral_l2_ptr_vec_in)
     {
-        integral_ptr_vec = integral_ptr_vec_in;
+        integral_l2_ptr_vec = integral_l2_ptr_vec_in;
     }
 
 };
@@ -81,7 +81,7 @@ void IntegralPhysicsGroup::evaluate_Ni_derivative()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_Ni_derivative();
     }
@@ -105,7 +105,7 @@ void IntegralPhysicsGroup::evaluate_integral_Ni()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_Ni();
     }
@@ -129,7 +129,7 @@ void IntegralPhysicsGroup::evaluate_integral_derivative_Ni_x()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_derivative_Ni_x();
     }
@@ -153,7 +153,7 @@ void IntegralPhysicsGroup::evaluate_integral_Ni_Nj()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_Ni_Nj();
     }
@@ -177,7 +177,7 @@ void IntegralPhysicsGroup::evaluate_integral_Ni_derivative_Nj_x()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_Ni_derivative_Nj_x();
     }
@@ -201,7 +201,7 @@ void IntegralPhysicsGroup::evaluate_integral_div_Ni_dot_div_Nj()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_div_Ni_dot_div_Nj();
     }
@@ -225,7 +225,7 @@ void IntegralPhysicsGroup::evaluate_integral_Ni_Nj_derivative_Nk_x()
     */
 
     // evaluate integrals in each domain
-    for (auto integral_ptr : integral_ptr_vec)
+    for (auto integral_ptr : integral_l2_ptr_vec)
     {
         integral_ptr->evaluate_integral_Ni_Nj_derivative_Nk_x();
     }

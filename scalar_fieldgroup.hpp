@@ -13,7 +13,7 @@ class ScalarFieldGroup
 
     Variables
     =========
-    scalar_ptr_vec_in : vector<ScalarLine2*>
+    scalar_l2_ptr_vec_in : vector<ScalarLine2*>
         vector with pointers to ScalarLine2 objects.
     
     */
@@ -28,8 +28,8 @@ class ScalarFieldGroup
     MapIntInt point_gid_to_fid_map;  // key: global ID; value: field ID
 
     // scalars and meshes
-    std::vector<ScalarLine2*> scalar_ptr_vec;  // vector of scalars
-    std::unordered_map<MeshLine2Struct*, ScalarLine2*> scalar_ptr_map;  // key: mesh; value: scalar
+    std::vector<ScalarLine2*> scalar_l2_ptr_vec;  // vector of scalars
+    std::unordered_map<MeshLine2*, ScalarLine2*> scalar_ptr_map;  // key: mesh; value: scalar
 
     // default constructor
     ScalarFieldGroup()
@@ -38,16 +38,16 @@ class ScalarFieldGroup
     }
 
     // constructor
-    ScalarFieldGroup(std::vector<ScalarLine2*> scalar_ptr_vec_in)
+    ScalarFieldGroup(std::vector<ScalarLine2*> scalar_l2_ptr_vec_in)
     {
         
         // store vector of scalars
-        scalar_ptr_vec = scalar_ptr_vec_in;
+        scalar_l2_ptr_vec = scalar_l2_ptr_vec_in;
 
         // map mesh to scalars
-        for (auto scalar_ptr : scalar_ptr_vec)
+        for (auto scalar_ptr : scalar_l2_ptr_vec)
         {
-            scalar_ptr_map[scalar_ptr->mesh_l2_ptr] = scalar_ptr;
+            scalar_ptr_map[scalar_ptr->mesh_ptr] = scalar_ptr;
         }
 
         // get set of global IDs
@@ -57,9 +57,9 @@ class ScalarFieldGroup
         std::set<int> point_gid_set;  
 
         // iterate through each variable and get set of global IDs
-        for (auto scalar_ptr : scalar_ptr_vec)
+        for (auto scalar_ptr : scalar_l2_ptr_vec)
         {
-            for (auto &point_gid : scalar_ptr->mesh_l2_ptr->point_gid_vec)
+            for (auto &point_gid : scalar_ptr->mesh_ptr->point_gid_vec)
             {
                 point_gid_set.insert(point_gid);
             }

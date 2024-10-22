@@ -11,7 +11,7 @@ class MeshPhysicsGroup
 
     Variables
     =========
-    mesh_ptr_vec_in : vector<MeshLine2*>
+    mesh_l2_ptr_vec_in : vector<MeshLine2*>
         vector with pointers to MeshLine2 objects.
     
     */
@@ -19,7 +19,7 @@ class MeshPhysicsGroup
     public:
 
     // vector with meshes in group
-    std::vector<MeshLine2Struct*> mesh_ptr_vec;
+    std::vector<MeshLine2*> mesh_l2_ptr_vec;
 
     // default constructor
     MeshPhysicsGroup()
@@ -28,11 +28,11 @@ class MeshPhysicsGroup
     }
 
     // constructor
-    MeshPhysicsGroup(std::vector<MeshLine2Struct*> mesh_ptr_vec_in)
+    MeshPhysicsGroup(std::vector<MeshLine2*> mesh_l2_ptr_vec_in)
     {
         
         // store variables
-        mesh_ptr_vec = mesh_ptr_vec_in;
+        mesh_l2_ptr_vec = mesh_l2_ptr_vec_in;
 
     }
 

@@ -3,15 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include "container_boundaryconfig.hpp"
 #include "container_typedef.hpp"
-
-struct BoundaryConfigLine2Struct
-{
-
-    std::string type_str;
-    VectorDouble parameter_vec;
-
-};
 
 class BoundaryLine2
 {
@@ -64,7 +57,7 @@ class BoundaryLine2
 
     // boundary condition type
     int num_boundaryconfig = 0;
-    std::vector<BoundaryConfigLine2Struct> boundaryconfig_vec;
+    std::vector<BoundaryConfigStruct> boundaryconfig_vec;
 
     // functions
     void set_boundarycondition(int boundaryconfig_id, std::string type_str, VectorDouble parameter_vec);
@@ -111,10 +104,10 @@ class BoundaryLine2
         num_boundaryconfig += 1;
 
         // initialize boundary config id vector
-        boundaryconfig_vec = std::vector<BoundaryConfigLine2Struct>(num_boundaryconfig);
+        boundaryconfig_vec = std::vector<BoundaryConfigStruct>(num_boundaryconfig);
 
         // initialize boundary config id vector with zero flux
-        BoundaryConfigLine2Struct boundaryconfig_zeroflux;
+        BoundaryConfigStruct boundaryconfig_zeroflux;
         boundaryconfig_zeroflux.type_str = "neumann";
         boundaryconfig_zeroflux.parameter_vec = {0};
         for (auto boundaryconfig_id : element_flux_boundaryconfig_id_vec)
@@ -123,7 +116,7 @@ class BoundaryLine2
         }
 
         // initialize boundary config id vector with zero values
-        BoundaryConfigLine2Struct boundaryconfig_zerovalue;
+        BoundaryConfigStruct boundaryconfig_zerovalue;
         boundaryconfig_zerovalue.type_str = "dirichlet";
         boundaryconfig_zerovalue.parameter_vec = {0};
         for (auto boundaryconfig_id : element_value_boundaryconfig_id_vec)

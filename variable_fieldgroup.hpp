@@ -13,7 +13,7 @@ class VariableFieldGroup
 
     Variables
     =========
-    variable_ptr_vec_in : vector<VariableLine2*>
+    variable_l2_ptr_vec_in : vector<VariableLine2*>
         vector with pointers to VariableLine2 objects.
     
     */
@@ -28,8 +28,8 @@ class VariableFieldGroup
     MapIntInt point_gid_to_fid_map;  // key: global ID; value: field ID
 
     // variables and meshes
-    std::vector<VariableLine2*> variable_ptr_vec;  // vector of variables
-    std::unordered_map<MeshLine2Struct*, VariableLine2*> mesh_to_variable_ptr_map;  // key: mesh; value: variable
+    std::vector<VariableLine2*> variable_l2_ptr_vec;  // vector of variables
+    std::unordered_map<MeshLine2*, VariableLine2*> mesh_to_variable_ptr_map;  // key: mesh; value: variable
    
     // starting column of variables in matrix equation
     int start_col = -1;
@@ -41,16 +41,16 @@ class VariableFieldGroup
     }
 
     // constructor
-    VariableFieldGroup(std::vector<VariableLine2*> variable_ptr_vec_in)
+    VariableFieldGroup(std::vector<VariableLine2*> variable_l2_ptr_vec_in)
     {
         
         // store vector of variables
-        variable_ptr_vec = variable_ptr_vec_in;
+        variable_l2_ptr_vec = variable_l2_ptr_vec_in;
 
         // map mesh to variables
-        for (auto variable_ptr : variable_ptr_vec)
+        for (auto variable_ptr : variable_l2_ptr_vec)
         {
-            mesh_to_variable_ptr_map[variable_ptr->mesh_l2_ptr] = variable_ptr;
+            mesh_to_variable_ptr_map[variable_ptr->mesh_ptr] = variable_ptr;
         }
 
         // get set of global IDs
@@ -60,9 +60,9 @@ class VariableFieldGroup
         std::set<int> point_gid_set;  
 
         // iterate through each variable and get set of global IDs
-        for (auto variable_ptr : variable_ptr_vec)
+        for (auto variable_ptr : variable_l2_ptr_vec)
         {
-            for (auto &point_gid : variable_ptr->mesh_l2_ptr->point_gid_vec)
+            for (auto &point_gid : variable_ptr->mesh_ptr->point_gid_vec)
             {
                 point_gid_set.insert(point_gid);
             }
