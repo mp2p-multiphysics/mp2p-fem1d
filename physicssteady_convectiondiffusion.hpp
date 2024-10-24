@@ -16,7 +16,7 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
 
     Single-component steady-state convection-diffusion equation.    
     
-    0 = -div(-b * grad(u) + u * v) + c
+    0 = -div(-b * grad(u)) - v * grad(u) + c
 
     Variables
     =========
@@ -27,14 +27,14 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
     integral_physics_in : IntegralPhysicsGroup
         Test function integrals of the meshes.
     value_field_in : VariableFieldGroup
-        u in 0 = -div(-b * grad(u) + u * v) + c.
+        u in 0 = -div(-b * grad(u)) - v * grad(u) + c.
         This will be solved for by the matrix equation.
     diffusioncoefficient_field_in : ScalarFieldGroup
-        b in 0 = -div(-b * grad(u) + u * v) + c.
+        b in 0 = -div(-b * grad(u)) - v * grad(u) + c.
     velocity_x_field_in : ScalarFieldGroup
-        v in 0 = -div(-b * grad(u) + u * v) + c.
+        v in 0 = -div(-b * grad(u)) - v * grad(u) + c.
     generationcoefficient_field_in : ScalarFieldGroup
-        c in 0 = -div(-b * grad(u) + u * v) + c.
+        c in 0 = -div(-b * grad(u)) - v * grad(u) + c.
 
     Functions
     =========
@@ -108,7 +108,6 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
         integral_physics_ptr->evaluate_integral_div_Ni_dot_div_Nj();
         integral_physics_ptr->evaluate_integral_Ni_derivative_Nj_x();
         integral_physics_ptr->evaluate_integral_Ni();
-        integral_physics_ptr->evaluate_integral_Ni_Nj_derivative_Nk_x();
 
     }
 
@@ -222,17 +221,10 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
             int mat_row = start_row + fid_arr[indx_i];
             int mat_col = value_field_ptr->start_col + fid_arr[indx_j];
             
-            // calculate velocity derivative
-            double integral_Ni_Nj_dvelx_dx = 0;
-            for (int indx_k = 0; indx_k < 2; indx_k++){
-                integral_Ni_Nj_dvelx_dx += velx_arr[indx_k]*integral_ptr->integral_Ni_Nj_derivative_Nk_x_vec[element_did][indx_i][indx_j][indx_k];
-            }
-
             // fill up a_mat
             a_mat.coeffRef(mat_row, mat_col) += (
                 diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[element_did][indx_i][indx_j] +
-                velx_arr[indx_i]*integral_ptr->integral_Ni_derivative_Nj_x_vec[element_did][indx_i][indx_j] +
-                integral_Ni_Nj_dvelx_dx 
+                velx_arr[indx_i]*integral_ptr->integral_Ni_derivative_Nj_x_vec[element_did][indx_i][indx_j]
             );
 
         }}
@@ -261,16 +253,6 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
         int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
 
-        // get domain ID of points
-        // used for getting properties and integrals
-        int p0_did = mesh_ptr->point_gid_to_did_map[p0_gid];
-        int p1_did = mesh_ptr->point_gid_to_did_map[p1_gid];
-
-        // get velocity of points around element
-        double velx_p0 = velocity_x_ptr->point_value_vec[p0_did];
-        double velx_p1 = velocity_x_ptr->point_value_vec[p1_did];
-        double velx_arr[2] = {velx_p0, velx_p1};
-
         // get local ID of point where boundary is applied
         int pa_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
@@ -288,29 +270,19 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         if (boundaryconfig.type_str == "neumann")
         {
             
-            // calculate dot product of velocity and outward normal
-            // negative of velocity if coming from the left
-            double vel_dot_norm = (2*(double)pa_lid - 1)*velx_arr[pa_lid];
-            
-            // add to a_mat and b_vec
+            // add to b_vec
             int mat_row = start_row + fid_arr[pa_lid];
-            int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             b_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += -vel_dot_norm;
 
         }
         else if (boundaryconfig.type_str == "robin")
         {
             
-            // calculate dot product of velocity and outward normal
-            // negative of velocity if coming from the left
-            double vel_dot_norm = (2*(double)pa_lid - 1)*velx_arr[pa_lid];
-
             // add to a_mat and b_vec
             int mat_row = start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
             b_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += -vel_dot_norm - boundaryconfig.parameter_vec[1];
+            a_mat.coeffRef(mat_row, mat_col) += -boundaryconfig.parameter_vec[1];
 
         }
 
