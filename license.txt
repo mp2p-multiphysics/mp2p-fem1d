@@ -1,4 +1,4 @@
-Multi-purpose Multiphysics Program (FEM 1D)
+Multipurpose Multiphysics Package (FEM 1D)
 
 Copyright 2024 レモン・サワー
 
