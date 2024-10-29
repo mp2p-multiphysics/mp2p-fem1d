@@ -2,13 +2,13 @@
 #define PHYSICSSTEADY_DIFFUSION
 #include <vector>
 #include "Eigen/Eigen"
-#include "boundary_physicsgroup.hpp"
+#include "boundary_field.hpp"
 #include "container_typedef.hpp"
-#include "integral_physicsgroup.hpp"
-#include "mesh_physicsgroup.hpp"
+#include "integral_field.hpp"
+#include "mesh_field.hpp"
 #include "physicssteady_base.hpp"
-#include "scalar_fieldgroup.hpp"
-#include "variable_fieldgroup.hpp"
+#include "scalar_field.hpp"
+#include "variable_field.hpp"
 
 class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 {
@@ -20,18 +20,18 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 
     Variables
     =========
-    mesh_physics_in : MeshPhysicsGroup
+    mesh_field_in : MeshField
         Meshes where this physics is applied to.
-    boundary_physics_in : BoundaryPhysicsGroup
+    boundary_field_in : BoundaryField
         Boundary conditions pertinent to this physics.
-    integral_physics_in : IntegralPhysicsGroup
+    integral_field_in : IntegralField
         Test function integrals of the meshes.
-    value_field_in : VariableFieldGroup
+    value_field_in : VariableField
         u in 0 = -div(-b * grad(u)) + c.
         This will be solved for by the matrix equation.
-    diffusioncoefficient_field_in : ScalarFieldGroup
+    diffusioncoefficient_field_in : ScalarField
         b in 0 = -div(-b * grad(u)) + c.
-    generationcoefficient_field_in : ScalarFieldGroup
+    generationcoefficient_field_in : ScalarField
         c in 0 = -div(-b * grad(u)) + c.
 
     Functions
@@ -42,25 +42,23 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_variable_field_ptr_vec() : vector<VariableFieldGroup*>
-        Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+    get_variable_field_ptr_vec() : vector<VariableField*>
+        Returns the vector containing pointers to VariableField objects tied to this physics.
 
     */
 
     public:
 
-    // physics groups
-    MeshPhysicsGroup *mesh_physics_ptr;
-    BoundaryPhysicsGroup *boundary_physics_ptr;
-    IntegralPhysicsGroup *integral_physics_ptr;
-
-    // field groups
-    VariableFieldGroup *value_field_ptr;
-    ScalarFieldGroup *diffusioncoefficient_field_ptr;
-    ScalarFieldGroup *generationcoefficient_field_ptr;
+    // variables
+    MeshField *mesh_field_ptr;
+    BoundaryField *boundary_field_ptr;
+    IntegralField *integral_field_ptr;
+    VariableField *value_field_ptr;
+    ScalarField *diffusioncoefficient_field_ptr;
+    ScalarField *generationcoefficient_field_ptr;
 
     // vector of variable fields
-    std::vector<VariableFieldGroup*> variable_field_ptr_vec;
+    std::vector<VariableField*> variable_field_ptr_vec;
 
     // starting row of test functions in matrix equation
     int start_row = -1;
@@ -69,7 +67,7 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
     void set_start_row(int start_row_in);
     int get_start_row();
-    std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
+    std::vector<VariableField*> get_variable_field_ptr_vec();
 
     // default constructor
     PhysicsSteadyDiffusion()
@@ -80,17 +78,15 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     // constructor
     PhysicsSteadyDiffusion
     (
-        MeshPhysicsGroup &mesh_physics_in, BoundaryPhysicsGroup &boundary_physics_in, IntegralPhysicsGroup &integral_physics_in,
-        VariableFieldGroup &value_field_in, ScalarFieldGroup &diffusioncoefficient_field_in, ScalarFieldGroup &generationcoefficient_field_in
+        MeshField &mesh_field_in, BoundaryField &boundary_field_in, IntegralField &integral_field_in,
+        VariableField &value_field_in, ScalarField &diffusioncoefficient_field_in, ScalarField &generationcoefficient_field_in
     )
     {
         
-        // store physics groups
-        mesh_physics_ptr = &mesh_physics_in;
-        boundary_physics_ptr = &boundary_physics_in;
-        integral_physics_ptr = &integral_physics_in;
-
-        // store field 
+        // store variables
+        mesh_field_ptr = &mesh_field_in;
+        boundary_field_ptr = &boundary_field_in;
+        integral_field_ptr = &integral_field_in;
         value_field_ptr = &value_field_in;
         diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
         generationcoefficient_field_ptr = &generationcoefficient_field_in;
@@ -99,9 +95,9 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
         variable_field_ptr_vec = {value_field_ptr};
 
         // calculate integrals
-        integral_physics_ptr->evaluate_Ni_derivative();
-        integral_physics_ptr->evaluate_integral_div_Ni_dot_div_Nj();
-        integral_physics_ptr->evaluate_integral_Ni();
+        integral_field_ptr->evaluate_Ni_derivative();
+        integral_field_ptr->evaluate_integral_div_Ni_dot_div_Nj();
+        integral_field_ptr->evaluate_integral_Ni();
 
     }
 
@@ -140,13 +136,13 @@ void PhysicsSteadyDiffusion::matrix_fill
     */
 
     // iterate through each domain covered by the mesh
-    for (int indx_d = 0; indx_d < mesh_physics_ptr->mesh_l2_ptr_vec.size(); indx_d++)
+    for (int indx_d = 0; indx_d < mesh_field_ptr->mesh_l2_ptr_vec.size(); indx_d++)
     {
 
         // subset the mesh, boundary, and intergrals
-        MeshLine2 *mesh_ptr = mesh_physics_ptr->mesh_l2_ptr_vec[indx_d];
-        BoundaryLine2 *boundary_ptr = boundary_physics_ptr->boundary_l2_ptr_vec[indx_d];
-        IntegralLine2 *integral_ptr = integral_physics_ptr->integral_l2_ptr_vec[indx_d];
+        MeshLine2 *mesh_ptr = mesh_field_ptr->mesh_l2_ptr_vec[indx_d];
+        BoundaryLine2 *boundary_ptr = boundary_field_ptr->boundary_l2_ptr_vec[indx_d];
+        IntegralLine2 *integral_ptr = integral_field_ptr->integral_l2_ptr_vec[indx_d];
 
         // get scalar fields
         ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_field_ptr->scalar_ptr_map[mesh_ptr];
@@ -389,11 +385,11 @@ int PhysicsSteadyDiffusion::get_start_row()
 
 }
 
-std::vector<VariableFieldGroup*> PhysicsSteadyDiffusion::get_variable_field_ptr_vec()
+std::vector<VariableField*> PhysicsSteadyDiffusion::get_variable_field_ptr_vec()
 {
     /*
 
-    Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+    Returns the vector containing pointers to VariableField objects tied to this physics.
 
     Arguments
     =========
@@ -401,8 +397,8 @@ std::vector<VariableFieldGroup*> PhysicsSteadyDiffusion::get_variable_field_ptr_
 
     Returns
     =======
-    variable_field_ptr : vector<VariableFieldGroup*>
-        Vector containing pointers to VariableFieldGroup objects.
+    variable_field_ptr : vector<VariableField*>
+        Vector containing pointers to VariableField objects.
 
     */
     

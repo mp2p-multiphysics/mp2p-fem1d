@@ -3,7 +3,7 @@
 #include <vector>
 #include "boundary_line2.hpp"
 
-class BoundaryPhysicsGroup
+class BoundaryField
 {
     /*
 
@@ -22,13 +22,13 @@ class BoundaryPhysicsGroup
     std::vector<BoundaryLine2*> boundary_l2_ptr_vec;
 
     // default constructor
-    BoundaryPhysicsGroup()
+    BoundaryField()
     {
 
     }
 
     // constructor
-    BoundaryPhysicsGroup(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
+    BoundaryField(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
     {
         boundary_l2_ptr_vec = boundary_l2_ptr_vec_in;
     }

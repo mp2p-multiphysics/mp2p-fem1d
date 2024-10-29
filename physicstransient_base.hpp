@@ -2,12 +2,12 @@
 #define PHYSICSTRANSIENT_BASE
 #include <vector>
 #include "Eigen/Eigen"
-#include "boundary_physicsgroup.hpp"
+#include "boundary_field.hpp"
 #include "container_typedef.hpp"
-#include "mesh_physicsgroup.hpp"
-#include "scalar_fieldgroup.hpp"
-#include "integral_physicsgroup.hpp"
-#include "variable_fieldgroup.hpp"
+#include "mesh_field.hpp"
+#include "scalar_field.hpp"
+#include "integral_field.hpp"
+#include "variable_field.hpp"
 
 class PhysicsTransientBase
 {
@@ -23,20 +23,20 @@ class PhysicsTransientBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_variable_field_ptr_vec() : vector<VariableFieldGroup*>
-        Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+    get_variable_field_ptr_vec() : vector<VariableField*>
+        Returns the vector containing pointers to VariableField objects tied to this physics.
 
     */
 
     public:
 
-    // physics groups
-    MeshPhysicsGroup *mesh_physics_ptr;
-    BoundaryPhysicsGroup *boundary_physics_ptr;
-    IntegralPhysicsGroup *integral_physics_ptr;
+    // variables
+    MeshField *mesh_field_ptr;
+    BoundaryField *boundary_field_ptr;
+    IntegralField *integral_field_ptr;
 
     // vector of variable fields
-    std::vector<VariableFieldGroup*> variable_field_ptr_vec;
+    std::vector<VariableField*> variable_field_ptr_vec;
 
     // starting row of test functions in matrix equation
     int start_row = -1;
@@ -49,7 +49,7 @@ class PhysicsTransientBase
     );
     virtual void set_start_row(int start_row_in);
     virtual int get_start_row();
-    virtual std::vector<VariableFieldGroup*> get_variable_field_ptr_vec();
+    virtual std::vector<VariableField*> get_variable_field_ptr_vec();
 
     // default constructor
     PhysicsTransientBase()
@@ -134,11 +134,11 @@ int PhysicsTransientBase::get_start_row()
 
 }
 
-std::vector<VariableFieldGroup*> PhysicsTransientBase::get_variable_field_ptr_vec()
+std::vector<VariableField*> PhysicsTransientBase::get_variable_field_ptr_vec()
 {
     /*
 
-    Returns the vector containing pointers to VariableFieldGroup objects tied to this physics.
+    Returns the vector containing pointers to VariableField objects tied to this physics.
 
     Arguments
     =========
@@ -146,8 +146,8 @@ std::vector<VariableFieldGroup*> PhysicsTransientBase::get_variable_field_ptr_ve
 
     Returns
     =======
-    variable_field_ptr : vector<VariableFieldGroup*>
-        Vector containing pointers to VariableFieldGroup objects.
+    variable_field_ptr : vector<VariableField*>
+        Vector containing pointers to VariableField objects.
 
     */
 

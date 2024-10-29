@@ -3,7 +3,7 @@
 #include <vector>
 #include "mesh_line2.hpp"
 
-class MeshPhysicsGroup
+class MeshField
 {
     /*
 
@@ -22,13 +22,13 @@ class MeshPhysicsGroup
     std::vector<MeshLine2*> mesh_l2_ptr_vec;
 
     // default constructor
-    MeshPhysicsGroup()
+    MeshField()
     {
 
     }
 
     // constructor
-    MeshPhysicsGroup(std::vector<MeshLine2*> mesh_l2_ptr_vec_in)
+    MeshField(std::vector<MeshLine2*> mesh_l2_ptr_vec_in)
     {
         
         // store variables

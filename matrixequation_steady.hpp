@@ -4,7 +4,7 @@
 #include <vector>
 #include "Eigen/Eigen"
 #include "physicssteady_base.hpp"
-#include "variable_fieldgroup.hpp"
+#include "variable_field.hpp"
 
 class MatrixEquationSteady
 {
@@ -35,7 +35,7 @@ class MatrixEquationSteady
 
     // vector of physics
     std::vector<PhysicsSteadyBase*> physics_ptr_vec;
-    std::vector<VariableFieldGroup*> variable_field_ptr_vec;
+    std::vector<VariableField*> variable_field_ptr_vec;
 
     // matrix equation variables
     Eigen::SparseMatrix<double> a_mat;
@@ -102,7 +102,7 @@ class MatrixEquationSteady
         // get vector of variable fields
         
         // initialize set of variable fields
-        std::set<VariableFieldGroup*> variable_field_ptr_set;
+        std::set<VariableField*> variable_field_ptr_set;
 
         // iterate through each physics
         for (auto physics_ptr : physics_ptr_vec)
@@ -120,7 +120,7 @@ class MatrixEquationSteady
         }
 
         // convert to vector
-        variable_field_ptr_vec = std::vector<VariableFieldGroup*>(variable_field_ptr_set.begin(), variable_field_ptr_set.end());
+        variable_field_ptr_vec = std::vector<VariableField*>(variable_field_ptr_set.begin(), variable_field_ptr_set.end());
 
         // initialize matrix equation variables
         a_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
