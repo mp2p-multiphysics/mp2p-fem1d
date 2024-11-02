@@ -183,6 +183,11 @@ void MatrixEquationSteady::iterate_solution()
 
     */
 
+   // reset matrices
+    a_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
+    b_vec = Eigen::VectorXd::Zero(num_equation);
+    x_vec = Eigen::VectorXd::Zero(num_equation);
+
     // fill up a_mat and b_vec with each physics
     for (auto physics_ptr : physics_ptr_vec)
     {
