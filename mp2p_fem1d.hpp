@@ -13,7 +13,6 @@
 
 #include "boundary_line2.hpp"
 #include "boundary_field.hpp"
-#include "container_boundaryconfig.hpp"
 #include "container_typedef.hpp"
 #include "integral_line2.hpp"
 #include "integral_field.hpp"

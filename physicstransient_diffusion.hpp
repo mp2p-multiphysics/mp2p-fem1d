@@ -255,26 +255,22 @@ void PhysicsTransientDiffusion::matrix_fill_domain
     }
 
     // iterate for each flux boundary element
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_flux_domain; boundary_id++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_flux_domain; boundary_id++)
     {
 
         // get global ID of element
-        int ea_gid = boundary_ptr->element_flux_gid_vec[boundary_id];
+        int e_gid = boundary_ptr->boundary_flux_element_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
+        int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
 
         // get global ID of points
-        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
-        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->element_flux_pa_lid_vec[boundary_id];  // 0 or 1
-
-        // identify boundary type
-        int config_id = boundary_ptr->element_flux_boundaryconfig_id_vec[boundary_id];
-        BoundaryConfigStruct boundaryconfig = boundary_ptr->boundaryconfig_vec[config_id];
+        int pa_lid = boundary_ptr->boundary_flux_pa_lid_vec[boundary_id];  // 0 or 1
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
@@ -282,41 +278,43 @@ void PhysicsTransientDiffusion::matrix_fill_domain
         int p1_fid = value_field_ptr->point_gid_to_fid_map[p1_gid];
         int fid_arr[2] = {p0_fid, p1_fid};
 
+        // identify boundary type and parameters
+        std::string type_str = boundary_ptr->boundary_flux_type_str_vec[boundary_id];
+        VectorDouble parameter_vec = boundary_ptr->boundary_flux_parameter_vec[boundary_id];
+
         // apply boundary condition
-        if (boundaryconfig.type_str == "neumann")
+        if (type_str == "neumann")
         {
-            // add to d_vec
             int mat_row = start_row + fid_arr[pa_lid];
-            d_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
+            d_vec.coeffRef(mat_row) += parameter_vec[0];
         }
-        else if (boundaryconfig.type_str == "robin")
+        else if (type_str == "robin")
         {
-            // add to a_mat and b_vec
             int mat_row = start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
-            d_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
-            a_mat.coeffRef(mat_row, mat_col) += -boundaryconfig.parameter_vec[1];
+            d_vec.coeffRef(mat_row) += parameter_vec[0];
+            a_mat.coeffRef(mat_row, mat_col) += -parameter_vec[1];
         }
 
     }
 
     // clear rows with value boundary elements
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_value_domain; boundary_id++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_value_domain; boundary_id++)
     {
 
         // get global ID of element
-        int ea_gid = boundary_ptr->element_value_gid_vec[boundary_id];
+        int e_gid = boundary_ptr->boundary_value_element_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
+        int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
 
         // get global ID of points
-        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
-        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_lid = boundary_ptr->boundary_value_pa_lid_vec[boundary_id];  // 0 or 1
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
@@ -337,26 +335,26 @@ void PhysicsTransientDiffusion::matrix_fill_domain
     }
 
     // iterate for each value boundary element
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_element_value_domain; boundary_id++)
+    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_value_domain; boundary_id++)
     {
 
         // get global ID of element
-        int ea_gid = boundary_ptr->element_value_gid_vec[boundary_id];
+        int e_gid = boundary_ptr->boundary_value_element_gid_vec[boundary_id];
 
         // get domain ID of element
         // used for getting global ID of points
-        int ea_did = mesh_ptr->element_gid_to_did_map[ea_gid];
+        int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
 
         // get global ID of points
-        int p0_gid = mesh_ptr->element_p0_gid_vec[ea_did];
-        int p1_gid = mesh_ptr->element_p1_gid_vec[ea_did];
+        int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
+        int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->element_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_lid = boundary_ptr->boundary_value_pa_lid_vec[boundary_id];  // 0 or 1
         
-        // identify boundary type
-        int config_id = boundary_ptr->element_value_boundaryconfig_id_vec[boundary_id];
-        BoundaryConfigStruct boundaryconfig = boundary_ptr->boundaryconfig_vec[config_id];
+        // identify boundary type and parameters
+        std::string type_str = boundary_ptr->boundary_value_type_str_vec[boundary_id];
+        VectorDouble parameter_vec = boundary_ptr->boundary_value_parameter_vec[boundary_id];
 
         // get field ID of temperature points
         // used for getting matrix rows and columns
@@ -365,19 +363,15 @@ void PhysicsTransientDiffusion::matrix_fill_domain
         int fid_arr[2] = {p0_fid, p1_fid};
 
         // apply boundary condition
-        if (boundaryconfig.type_str == "dirichlet")
+        if (type_str == "dirichlet")
         {
-
-            // set a_mat and d_vec
-            // -1 values indicate invalid points
             int mat_row = start_row + fid_arr[pa_lid];
             int mat_col = value_field_ptr->start_col + fid_arr[pa_lid];
-            if (pa_lid != -1)
+            if (pa_lid != -1)  // -1 values indicate invalid points
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
-                d_vec.coeffRef(mat_row) += boundaryconfig.parameter_vec[0];
+                d_vec.coeffRef(mat_row) += parameter_vec[0];
             }
-
         }
 
     }
