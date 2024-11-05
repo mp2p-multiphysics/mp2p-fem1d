@@ -38,6 +38,8 @@ class MatrixEquationTransient
 
     // vector of physics
     std::vector<PhysicsTransientBase*> physics_ptr_vec;
+    std::vector<BoundaryField*> boundary_field_ptr_vec;
+    std::vector<ScalarField*> scalar_field_ptr_vec;
     std::vector<VariableField*> variable_field_ptr_vec;
 
     // matrix equation variables
@@ -105,27 +107,31 @@ class MatrixEquationTransient
         // get number of linear equations (total number of mesh points)
         num_equation = assign_start_col;
 
-        // get vector of variable fields
-        
-        // initialize set of variable fields
-        std::set<VariableField*> variable_field_ptr_set;
-
-        // iterate through each physics
+        // get vector of boundary fields
+        // iterate through each physics and store boundary fields
+        std::set<BoundaryField*> boundary_field_ptr_set;
         for (auto physics_ptr : physics_ptr_vec)
         {
-
-            // iterate through each variable field
-            for (auto variable_field_ptr : physics_ptr->get_variable_field_ptr_vec())
-            {
-                
-                // store variable field
-                variable_field_ptr_set.insert(variable_field_ptr);
-
-            }
-
+            boundary_field_ptr_set.insert(physics_ptr->get_boundary_field_ptr());
         }
+        boundary_field_ptr_vec = std::vector<BoundaryField*>(boundary_field_ptr_set.begin(), boundary_field_ptr_set.end());
 
-        // convert to vector
+        // get vector of scalar fields
+        // iterate through each physics and store scalar fields
+        std::set<ScalarField*> scalar_field_ptr_set;
+        for (auto physics_ptr : physics_ptr_vec) {
+        for (auto scalar_field_ptr : physics_ptr->get_scalar_field_ptr_vec()) {
+            scalar_field_ptr_set.insert(scalar_field_ptr);
+        }}
+        scalar_field_ptr_vec = std::vector<ScalarField*>(scalar_field_ptr_set.begin(), scalar_field_ptr_set.end());
+
+        // get vector of variable fields
+        // iterate through each physics and store variable fields
+        std::set<VariableField*> variable_field_ptr_set;
+        for (auto physics_ptr : physics_ptr_vec) {
+        for (auto variable_field_ptr : physics_ptr->get_variable_field_ptr_vec()) {
+            variable_field_ptr_set.insert(variable_field_ptr);
+        }}
         variable_field_ptr_vec = std::vector<VariableField*>(variable_field_ptr_set.begin(), variable_field_ptr_set.end());
 
         // initialize matrix equation variables
@@ -214,6 +220,18 @@ void MatrixEquationTransient::iterate_solution(double dt)
 
     */
 
+    // update boundary parameters using most recent variable values
+    for (auto boundary_field_ptr : boundary_field_ptr_vec)
+    {
+        boundary_field_ptr->update_parameter();
+    }
+
+    // update scalar values using most recent variable values
+    for (auto scalar_field_ptr : scalar_field_ptr_vec)
+    {
+        scalar_field_ptr->update_value();
+    }
+
     // reset matrices
     a_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
     c_mat = Eigen::SparseMatrix<double> (num_equation, num_equation);
@@ -224,7 +242,6 @@ void MatrixEquationTransient::iterate_solution(double dt)
     for (auto physics_ptr : physics_ptr_vec)
     {
         physics_ptr->matrix_fill(a_mat, c_mat, d_vec, x_vec, x_last_timestep_vec, dt);
-
     }
 
     // solve the matrix equation

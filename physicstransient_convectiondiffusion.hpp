@@ -63,7 +63,8 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
     ScalarField *diffusioncoefficient_field_ptr;
     ScalarField *generationcoefficient_field_ptr;
 
-    // vector of variable fields
+    // vector of scalar and variable fields
+    std::vector<ScalarField*> scalar_field_ptr_vec;
     std::vector<VariableField*> variable_field_ptr_vec;
 
     // starting row of test functions in matrix equation
@@ -76,6 +77,8 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
     );
     void set_start_row(int start_row_in);
     int get_start_row();
+    BoundaryField* get_boundary_field_ptr();
+    std::vector<ScalarField*> get_scalar_field_ptr_vec();
     std::vector<VariableField*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -98,12 +101,13 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
         boundary_field_ptr = &boundary_field_in;
         integral_field_ptr = &integral_field_in;
         value_field_ptr = &value_field_in;
-        velocity_x_field_ptr = &velocity_x_field_in;
         derivativecoefficient_field_ptr = &derivativecoefficient_field_in;
         diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
+        velocity_x_field_ptr = &velocity_x_field_in;
         generationcoefficient_field_ptr = &generationcoefficient_field_in;
 
-        // vector of variable fields 
+        // vector of scalar and variable fields 
+        scalar_field_ptr_vec = {derivativecoefficient_field_ptr, diffusioncoefficient_field_ptr, velocity_x_field_ptr, generationcoefficient_field_ptr};
         variable_field_ptr_vec = {value_field_ptr};
 
         // calculate integrals
@@ -424,6 +428,48 @@ int PhysicsTransientConvectionDiffusion::get_start_row()
     */    
 
     return start_row;
+
+}
+
+BoundaryField* PhysicsTransientConvectionDiffusion::get_boundary_field_ptr()
+{
+    /*
+
+    Returns the pointer to the BoundaryField object tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    boundary_field_ptr : BoundaryField*
+        Pointer to BoundaryField object.
+
+    */
+    
+    return boundary_field_ptr;
+
+}
+
+std::vector<ScalarField*> PhysicsTransientConvectionDiffusion::get_scalar_field_ptr_vec()
+{
+    /*
+
+    Returns the vector containing pointers to ScalarField objects tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    scalar_field_ptr : vector<ScalarField*>
+        Vector containing pointers to ScalarField objects.
+
+    */
+    
+    return scalar_field_ptr_vec;
 
 }
 

@@ -32,6 +32,9 @@ class ScalarField
     std::vector<ScalarLine2*> scalar_l2_ptr_vec;  // vector of scalars
     std::unordered_map<MeshLine2*, ScalarLine2*> scalar_ptr_map;  // key: mesh; value: scalar
 
+    // functions
+    void update_value();
+
     // default constructor
     ScalarField()
     {
@@ -92,5 +95,16 @@ class ScalarField
     }
 
 };
+
+void ScalarField::update_value()
+{
+
+    // iterate through each scalar
+    for (auto scalar_ptr : scalar_l2_ptr_vec)
+    {
+        scalar_ptr->update_value();
+    }
+
+}
 
 #endif

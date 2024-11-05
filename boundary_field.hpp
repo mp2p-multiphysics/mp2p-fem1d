@@ -21,6 +21,9 @@ class BoundaryField
     // vector with boundaries in group
     std::vector<BoundaryLine2*> boundary_l2_ptr_vec;
 
+    // functions
+    void update_parameter();
+
     // default constructor
     BoundaryField()
     {
@@ -34,5 +37,16 @@ class BoundaryField
     }
 
 };
+
+void BoundaryField::update_parameter()
+{
+    
+    // iterate through each boundary
+    for (auto boundary_ptr : boundary_l2_ptr_vec)
+    {
+        boundary_ptr->update_parameter();
+    }
+
+}
 
 #endif

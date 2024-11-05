@@ -57,7 +57,8 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     ScalarField *diffusioncoefficient_field_ptr;
     ScalarField *generationcoefficient_field_ptr;
 
-    // vector of variable fields
+    // vector of scalar and variable fields
+    std::vector<ScalarField*> scalar_field_ptr_vec;
     std::vector<VariableField*> variable_field_ptr_vec;
 
     // starting row of test functions in matrix equation
@@ -67,6 +68,8 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
     void set_start_row(int start_row_in);
     int get_start_row();
+    BoundaryField* get_boundary_field_ptr();
+    std::vector<ScalarField*> get_scalar_field_ptr_vec();
     std::vector<VariableField*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -91,7 +94,8 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
         diffusioncoefficient_field_ptr = &diffusioncoefficient_field_in;
         generationcoefficient_field_ptr = &generationcoefficient_field_in;
 
-        // vector of variable fields 
+        // vector of scalar and variable fields 
+        scalar_field_ptr_vec = {diffusioncoefficient_field_ptr, generationcoefficient_field_ptr};
         variable_field_ptr_vec = {value_field_ptr};
 
         // calculate integrals
@@ -376,6 +380,48 @@ int PhysicsSteadyDiffusion::get_start_row()
     */
 
     return start_row;
+
+}
+
+BoundaryField* PhysicsSteadyDiffusion::get_boundary_field_ptr()
+{
+    /*
+
+    Returns the pointer to the BoundaryField object tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    boundary_field_ptr : BoundaryField*
+        Pointer to BoundaryField object.
+
+    */
+    
+    return boundary_field_ptr;
+
+}
+
+std::vector<ScalarField*> PhysicsSteadyDiffusion::get_scalar_field_ptr_vec()
+{
+    /*
+
+    Returns the vector containing pointers to ScalarField objects tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    scalar_field_ptr : vector<ScalarField*>
+        Vector containing pointers to ScalarField objects.
+
+    */
+    
+    return scalar_field_ptr_vec;
 
 }
 

@@ -35,7 +35,8 @@ class PhysicsSteadyBase
     BoundaryField *boundary_field_ptr;
     IntegralField *integral_field_ptr;
 
-    // vector of variable fields
+    // vector of scalar and variable fields
+    std::vector<ScalarField*> scalar_field_ptr_vec;
     std::vector<VariableField*> variable_field_ptr_vec;
 
     // starting row of test functions in matrix equation
@@ -45,6 +46,8 @@ class PhysicsSteadyBase
     virtual void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
     virtual void set_start_row(int start_row_in);
     virtual int get_start_row();
+    virtual BoundaryField* get_boundary_field_ptr();
+    virtual std::vector<ScalarField*> get_scalar_field_ptr_vec();
     virtual std::vector<VariableField*> get_variable_field_ptr_vec();
 
     // default constructor
@@ -117,6 +120,48 @@ int PhysicsSteadyBase::get_start_row()
     */
     
     return start_row;
+
+}
+
+BoundaryField* PhysicsSteadyBase::get_boundary_field_ptr()
+{
+    /*
+
+    Returns the pointer to the BoundaryField object tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    boundary_field_ptr : BoundaryField*
+        Pointer to BoundaryField object.
+
+    */
+    
+    return boundary_field_ptr;
+
+}
+
+std::vector<ScalarField*> PhysicsSteadyBase::get_scalar_field_ptr_vec()
+{
+    /*
+
+    Returns the vector containing pointers to ScalarField objects tied to this physics.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    scalar_field_ptr : vector<ScalarField*>
+        Vector containing pointers to ScalarField objects.
+
+    */
+    
+    return scalar_field_ptr_vec;
 
 }
 
