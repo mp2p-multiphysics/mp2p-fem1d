@@ -21,6 +21,8 @@ class ScalarLine2
     =========
     output_csv : void
         Outputs a CSV file with the values of the scalar.
+    update_parameter : void
+        Recalculates non-constant boundary condition parameters.
 
     */
 
@@ -178,6 +180,19 @@ void ScalarLine2::output_csv(std::string file_out_base_str, int ts)
 
 void ScalarLine2::update_value()
 {
+    /*
+
+    Recalculates non-constant values.
+
+    Arguments
+    =========
+    (none)
+    
+    Returns
+    =========
+    (none)
+
+    */
 
     // skip if constant value
     if (is_value_constant)

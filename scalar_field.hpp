@@ -16,7 +16,12 @@ class ScalarField
     =========
     scalar_l2_ptr_vec_in : vector<ScalarLine2*>
         vector with pointers to ScalarLine2 objects.
-    
+
+    Functions
+    =========
+    update_value : void
+        Recalculates non-constant values.
+
     */
 
     public:
@@ -98,6 +103,19 @@ class ScalarField
 
 void ScalarField::update_value()
 {
+    /*
+
+    Recalculates non-constant values.
+
+    Arguments
+    =========
+    (none)
+    
+    Returns
+    =========
+    (none)
+
+    */
 
     // iterate through each scalar
     for (auto scalar_ptr : scalar_l2_ptr_vec)

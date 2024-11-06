@@ -14,6 +14,11 @@ class BoundaryField
     boundary_l2_ptr_vec_in : vector<BoundaryLine2*>
         vector with pointers to BoundaryLine2 objects.
     
+    Functions
+    =========
+    update_parameter : void
+        Recalculates non-constant boundary condition parameters.
+
     */
 
     public:
@@ -40,7 +45,20 @@ class BoundaryField
 
 void BoundaryField::update_parameter()
 {
+    /*
+
+    Recalculates non-constant boundary condition parameters.
+
+    Arguments
+    =========
+    (none)
     
+    Returns
+    =========
+    (none)
+
+    */
+
     // iterate through each boundary
     for (auto boundary_ptr : boundary_l2_ptr_vec)
     {

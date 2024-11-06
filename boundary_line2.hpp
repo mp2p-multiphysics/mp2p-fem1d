@@ -27,6 +27,8 @@ class BoundaryLine2
         Assigns a BC type and parameters to a BC configuration ID.
     set_boundarycondition_parameter : void
         Assigns or modifies the parameters to a BC.
+    update_parameter : void
+        Recalculates non-constant boundary condition parameters.
 
     Notes
     ====
@@ -187,8 +189,10 @@ void BoundaryLine2::set_boundary_flux(int boundaryconfig_id, std::string type_st
         BC configuration ID.
     type_str : string
         Type of boundary condition.
-    parameter_vec : VectorDouble
-        vector with parameters for the BC.
+    parameter_function : function<VectorDouble<double, VectorDouble>>
+        Function that calculates non-constant boundary condition parameters.
+    variable_ptr_vec : vector<VariableLine2*>
+        vector of variables that affects non-constant boundary condition parameters.
 
     Returns
     =======
@@ -198,6 +202,8 @@ void BoundaryLine2::set_boundary_flux(int boundaryconfig_id, std::string type_st
     ====
     type_str can be "neumann" or "robin" if boundaryconfig_id refers to flux-type BCs.
     type_str can be "dirichlet" if boundaryconfig_id refers to value-type BCs.
+    parameter_function accepts the x-coordinate and a vector of variable values as input.
+    parameter_function returns the vector of parameters needed by the boundary condition.
 
     */
 
@@ -297,8 +303,10 @@ void BoundaryLine2::set_boundary_value(int boundaryconfig_id, std::string type_s
         BC configuration ID.
     type_str : string
         Type of boundary condition.
-    parameter_vec : VectorDouble
-        vector with parameters for the BC.
+    parameter_function : function<VectorDouble<double, VectorDouble>>
+        Function that calculates non-constant boundary condition parameters.
+    variable_ptr_vec : vector<VariableLine2*>
+        vector of variables that affects non-constant boundary condition parameters.
 
     Returns
     =======
@@ -308,6 +316,8 @@ void BoundaryLine2::set_boundary_value(int boundaryconfig_id, std::string type_s
     ====
     type_str can be "neumann" or "robin" if boundaryconfig_id refers to flux-type BCs.
     type_str can be "dirichlet" if boundaryconfig_id refers to value-type BCs.
+    parameter_function accepts the x-coordinate and a vector of variable values as input.
+    parameter_function returns the vector of parameters needed by the boundary condition.
 
     */
 
@@ -343,6 +353,19 @@ void BoundaryLine2::set_boundary_value(int boundaryconfig_id, std::string type_s
 
 void BoundaryLine2::update_parameter()
 {
+    /*
+
+    Recalculates non-constant boundary condition parameters.
+
+    Arguments
+    =========
+    (none)
+    
+    Returns
+    =========
+    (none)
+
+    */
 
     // iterate through flux-type boundary config
     for (auto boundary_flux_pair : boundary_flux_is_parameter_constant_map)
@@ -365,12 +388,19 @@ void BoundaryLine2::update_parameter()
         {
 
             // get point domain ID
+
+            // get element domain ID
             int e_gid = boundary_flux_element_gid_vec[bfid];
             int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
+
+            // get points surrounding element
+            // select point affected by boundary
             int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
             int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
             int pa_lid = boundary_flux_pa_lid_vec[bfid];
             int p_gid_arr[2] = {p0_gid, p1_gid};
+
+            // get point domain ID
             int pa_gid = p_gid_arr[pa_lid];
             int pa_did = mesh_ptr->point_gid_to_did_map[pa_gid];
 
@@ -412,12 +442,19 @@ void BoundaryLine2::update_parameter()
         {
 
             // get point domain ID
+
+            // get element domain ID
             int e_gid = boundary_value_element_gid_vec[bvid];
             int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
+
+            // get points surrounding element
+            // select point affected by boundary
             int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
             int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
             int pa_lid = boundary_value_pa_lid_vec[bvid];
             int p_gid_arr[2] = {p0_gid, p1_gid};
+
+            // get point domain ID
             int pa_gid = p_gid_arr[pa_lid];
             int pa_did = mesh_ptr->point_gid_to_did_map[pa_gid];
 

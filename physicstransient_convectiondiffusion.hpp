@@ -12,7 +12,7 @@
 
 class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
 {
-  /*
+    /*
 
     Single-component transient convection-diffusion equation.    
     
@@ -46,6 +46,10 @@ class PhysicsTransientConvectionDiffusion : public PhysicsTransientBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
+    get_boundary_field_ptr_vec() : vector<BoundaryField*>
+        Returns the vector containing pointers to BoundaryField objects tied to this physics.
+    get_scalar_field_ptr_vec() : vector<ScalarField*>
+        Returns the vector containing pointers to ScalarField objects tied to this physics.
     get_variable_field_ptr_vec() : vector<VariableField*>
         Returns the vector containing pointers to VariableField objects tied to this physics.
 
