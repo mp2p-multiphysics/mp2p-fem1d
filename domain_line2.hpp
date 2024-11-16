@@ -1,20 +1,20 @@
-#ifndef MESH_LINE2
-#define MESH_LINE2
+#ifndef DOMAIN_LINE2
+#define DOMAIN_LINE2
 #include <unordered_map>
 #include "container_typedef.hpp"
 
-class MeshLine2
+class DomainLine2
 {
     /*
 
-    Mesh domain made of line2 elements.
+    Domain domain made of line2 elements.
 
     Variables
     =========
     file_in_point_str : string
-        Path to CSV file with data for mesh points.
+        Path to CSV file with data for domain points.
     file_in_element_str : string
-        Path to CSV file with data for mesh elements.
+        Path to CSV file with data for domain elements.
 
     Notes
     ====
@@ -53,13 +53,13 @@ class MeshLine2
     MapIntInt element_gid_to_did_map;
 
     // default constructor
-    MeshLine2 ()
+    DomainLine2 ()
     {
 
     }
 
     // construcotr
-    MeshLine2 (std::string file_in_point_str_in, std::string file_in_element_str_in)
+    DomainLine2 (std::string file_in_point_str_in, std::string file_in_element_str_in)
     {
 
         // store variables
@@ -67,20 +67,20 @@ class MeshLine2
         file_in_element_str = file_in_element_str_in;
 
         // read csv files
-        read_mesh_point(file_in_point_str);
-        read_mesh_element(file_in_element_str);
+        read_domain_point(file_in_point_str);
+        read_domain_element(file_in_element_str);
 
     }
     
     private:
 
     // functions
-    void read_mesh_point(std::string file_in_point_str);
-    void read_mesh_element(std::string file_in_element_str);
+    void read_domain_point(std::string file_in_point_str);
+    void read_domain_element(std::string file_in_element_str);
 
 };
 
-void MeshLine2::read_mesh_point(std::string file_in_point_str)
+void DomainLine2::read_domain_point(std::string file_in_point_str)
 {
 
     // read file with points
@@ -141,7 +141,7 @@ void MeshLine2::read_mesh_point(std::string file_in_point_str)
 
 }
 
-void MeshLine2::read_mesh_element(std::string file_in_element_str)
+void DomainLine2::read_domain_element(std::string file_in_element_str)
 {
 
     // read file with elements

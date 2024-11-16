@@ -1,19 +1,19 @@
 #ifndef SCALAR_LINE2
 #define SCALAR_LINE2
 #include <functional>
-#include "mesh_line2.hpp"
+#include "domain_line2.hpp"
 #include "variable_line2.hpp"
 
 class ScalarLine2
 {
     /*
 
-    Scalar applied over line2 mesh elements.
+    Scalar applied over line2 domain elements.
 
     Variables
     =========
-    mesh_in : MeshLine2
-        Mesh where scalar value is applied.
+    domain_in : DomainLine2
+        Domain where scalar value is applied.
     u_init_in : double
         Initial value of the scalar.
 
@@ -28,8 +28,8 @@ class ScalarLine2
 
     public:
 
-    // mesh where variable is applied
-    MeshLine2* mesh_ptr;
+    // domain where variable is applied
+    DomainLine2* domain_ptr;
     int num_point_domain = 0;  // number of points in domain
 
     // values in variable
@@ -51,12 +51,12 @@ class ScalarLine2
     }
 
     // constructor for constant values
-    ScalarLine2(MeshLine2 &mesh_in, double value_constant_in)
+    ScalarLine2(DomainLine2 &domain_in, double value_constant_in)
     {
 
-        // store mesh
-        mesh_ptr = &mesh_in;
-        num_point_domain = mesh_ptr->num_point_domain;
+        // store domain
+        domain_ptr = &domain_in;
+        num_point_domain = domain_ptr->num_point_domain;
 
         // store values
         is_value_constant = true;
@@ -68,12 +68,12 @@ class ScalarLine2
     }
 
     // constructor for non-constant values
-    ScalarLine2(MeshLine2 &mesh_in, std::function<double(double, VectorDouble)> value_function_in, std::vector<VariableLine2*> variable_ptr_vec_in)
+    ScalarLine2(DomainLine2 &domain_in, std::function<double(double, VectorDouble)> value_function_in, std::vector<VariableLine2*> variable_ptr_vec_in)
     {
 
-        // store mesh
-        mesh_ptr = &mesh_in;
-        num_point_domain = mesh_ptr->num_point_domain;
+        // store domain
+        domain_ptr = &domain_in;
+        num_point_domain = domain_ptr->num_point_domain;
 
         // store values
         is_value_constant = false;
@@ -115,8 +115,8 @@ void ScalarLine2::output_csv(std::string file_out_str)
     file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
-        file_out_stream << mesh_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << mesh_ptr->point_position_x_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
         file_out_stream << point_value_vec[point_did] << "\n";
     }
 
@@ -171,8 +171,8 @@ void ScalarLine2::output_csv(std::string file_out_base_str, int ts)
     file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
-        file_out_stream << mesh_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << mesh_ptr->point_position_x_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
         file_out_stream << point_value_vec[point_did] << "\n";
     }
 
@@ -201,11 +201,11 @@ void ScalarLine2::update_value()
     }
 
     // iterate through each point in scalar
-    for (int point_did = 0; point_did < mesh_ptr->num_point_domain; point_did++)
+    for (int point_did = 0; point_did < domain_ptr->num_point_domain; point_did++)
     {
 
-        // get mesh coordinate
-        double position_x = mesh_ptr->point_position_x_vec[point_did];
+        // get domain coordinate
+        double position_x = domain_ptr->point_position_x_vec[point_did];
 
         // iterate through each variable that scalar depends on
         VectorDouble value_vec;

@@ -2,12 +2,12 @@
 #define PHYSICSTRANSIENT_BASE
 #include <vector>
 #include "Eigen/Eigen"
-#include "boundary_field.hpp"
+#include "boundary_group.hpp"
 #include "container_typedef.hpp"
-#include "mesh_field.hpp"
-#include "scalar_field.hpp"
-#include "integral_field.hpp"
-#include "variable_field.hpp"
+#include "domain_group.hpp"
+#include "scalar_group.hpp"
+#include "integral_group.hpp"
+#include "variable_group.hpp"
 
 class PhysicsTransientBase
 {
@@ -23,25 +23,25 @@ class PhysicsTransientBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_boundary_field_ptr_vec() : vector<BoundaryField*>
-        Returns the vector containing pointers to BoundaryField objects tied to this physics.
-    get_scalar_field_ptr_vec() : vector<ScalarField*>
-        Returns the vector containing pointers to ScalarField objects tied to this physics.
-    get_variable_field_ptr_vec() : vector<VariableField*>
-        Returns the vector containing pointers to VariableField objects tied to this physics.
+    get_boundary_group_ptr_vec() : vector<BoundaryGroup*>
+        Returns the vector containing pointers to BoundaryGroup objects tied to this physics.
+    get_scalar_group_ptr_vec() : vector<ScalarGroup*>
+        Returns the vector containing pointers to ScalarGroup objects tied to this physics.
+    get_variable_group_ptr_vec() : vector<VariableGroup*>
+        Returns the vector containing pointers to VariableGroup objects tied to this physics.
 
     */
 
     public:
 
     // variables
-    MeshField *mesh_field_ptr;
-    BoundaryField *boundary_field_ptr;
-    IntegralField *integral_field_ptr;
+    DomainGroup *domain_group_ptr;
+    BoundaryGroup *boundary_group_ptr;
+    IntegralGroup *integral_group_ptr;
 
-    // vector of scalar and variable fields
-    std::vector<ScalarField*> scalar_field_ptr_vec;
-    std::vector<VariableField*> variable_field_ptr_vec;
+    // vector of scalar and variable groups
+    std::vector<ScalarGroup*> scalar_group_ptr_vec;
+    std::vector<VariableGroup*> variable_group_ptr_vec;
 
     // starting row of test functions in matrix equation
     int start_row = -1;
@@ -54,9 +54,9 @@ class PhysicsTransientBase
     );
     virtual void set_start_row(int start_row_in);
     virtual int get_start_row();
-    virtual BoundaryField* get_boundary_field_ptr();
-    virtual std::vector<ScalarField*> get_scalar_field_ptr_vec();
-    virtual std::vector<VariableField*> get_variable_field_ptr_vec();
+    virtual BoundaryGroup* get_boundary_group_ptr();
+    virtual std::vector<ScalarGroup*> get_scalar_group_ptr_vec();
+    virtual std::vector<VariableGroup*> get_variable_group_ptr_vec();
 
     // default constructor
     PhysicsTransientBase()
@@ -141,11 +141,11 @@ int PhysicsTransientBase::get_start_row()
 
 }
 
-BoundaryField* PhysicsTransientBase::get_boundary_field_ptr()
+BoundaryGroup* PhysicsTransientBase::get_boundary_group_ptr()
 {
     /*
 
-    Returns the pointer to the BoundaryField object tied to this physics.
+    Returns the pointer to the BoundaryGroup object tied to this physics.
 
     Arguments
     =========
@@ -153,20 +153,20 @@ BoundaryField* PhysicsTransientBase::get_boundary_field_ptr()
 
     Returns
     =======
-    boundary_field_ptr : BoundaryField*
-        Pointer to BoundaryField object.
+    boundary_group_ptr : BoundaryGroup*
+        Pointer to BoundaryGroup object.
 
     */
     
-    return boundary_field_ptr;
+    return boundary_group_ptr;
 
 }
 
-std::vector<ScalarField*> PhysicsTransientBase::get_scalar_field_ptr_vec()
+std::vector<ScalarGroup*> PhysicsTransientBase::get_scalar_group_ptr_vec()
 {
     /*
 
-    Returns the vector containing pointers to ScalarField objects tied to this physics.
+    Returns the vector containing pointers to ScalarGroup objects tied to this physics.
 
     Arguments
     =========
@@ -174,20 +174,20 @@ std::vector<ScalarField*> PhysicsTransientBase::get_scalar_field_ptr_vec()
 
     Returns
     =======
-    scalar_field_ptr : vector<ScalarField*>
-        Vector containing pointers to ScalarField objects.
+    scalar_group_ptr : vector<ScalarGroup*>
+        Vector containing pointers to ScalarGroup objects.
 
     */
     
-    return scalar_field_ptr_vec;
+    return scalar_group_ptr_vec;
 
 }
 
-std::vector<VariableField*> PhysicsTransientBase::get_variable_field_ptr_vec()
+std::vector<VariableGroup*> PhysicsTransientBase::get_variable_group_ptr_vec()
 {
     /*
 
-    Returns the vector containing pointers to VariableField objects tied to this physics.
+    Returns the vector containing pointers to VariableGroup objects tied to this physics.
 
     Arguments
     =========
@@ -195,12 +195,12 @@ std::vector<VariableField*> PhysicsTransientBase::get_variable_field_ptr_vec()
 
     Returns
     =======
-    variable_field_ptr : vector<VariableField*>
-        Vector containing pointers to VariableField objects.
+    variable_group_ptr : vector<VariableGroup*>
+        Vector containing pointers to VariableGroup objects.
 
     */
 
-    return variable_field_ptr_vec;
+    return variable_group_ptr_vec;
 
 }
 

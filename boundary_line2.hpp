@@ -51,7 +51,7 @@ class BoundaryLine2
     // vectors use did as input
 
     // mesh where variable is applied
-    MeshLine2* mesh_ptr;
+    DomainLine2* mesh_ptr;
 
     // file names
     std::string file_in_str;
@@ -106,7 +106,7 @@ class BoundaryLine2
     }
 
     // constructor
-    BoundaryLine2(MeshLine2 &mesh_in, std::string file_in_str_in)
+    BoundaryLine2(DomainLine2 &mesh_in, std::string file_in_str_in)
     {
 
         // store variables

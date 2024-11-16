@@ -1,19 +1,19 @@
 #ifndef VARIABLE_LINE2
 #define VARIABLE_LINE2
 #include <fstream>
-#include "mesh_line2.hpp"
+#include "domain_line2.hpp"
 #include "container_typedef.hpp"
 
 class VariableLine2
 {
     /*
 
-    Variable applied over line2 mesh elements.
+    Variable applied over line2 domain elements.
 
     Variables
     =========
-    mesh_in : MeshLine2
-        Mesh where variable value is applied.
+    domain_in : DomainLine2
+        Domain where variable value is applied.
     u_init_in : double
         Initial value of the variable.
 
@@ -30,8 +30,8 @@ class VariableLine2
     int num_point_domain = 0;  // number of points in domain
     VectorDouble point_value_vec;  // key: domain ID; value: value
     
-    // mesh where variable is applied
-    MeshLine2* mesh_ptr;  
+    // domain where variable is applied
+    DomainLine2* domain_ptr;  
 
     // functions
     void output_csv(std::string file_out_str);
@@ -44,14 +44,14 @@ class VariableLine2
     }
 
     // constructor
-    VariableLine2(MeshLine2 &mesh_in, double u_init_in)
+    VariableLine2(DomainLine2 &domain_in, double u_init_in)
     {
 
-        // store mesh
-        mesh_ptr = &mesh_in;
+        // store domain
+        domain_ptr = &domain_in;
 
         // get number of domain points
-        num_point_domain = mesh_ptr->num_point_domain;
+        num_point_domain = domain_ptr->num_point_domain;
 
         // populate value vector with initial values
         for (int point_did = 0; point_did < num_point_domain; point_did++)
@@ -91,8 +91,8 @@ void VariableLine2::output_csv(std::string file_out_str)
     file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
-        file_out_stream << mesh_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << mesh_ptr->point_position_x_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
         file_out_stream << point_value_vec[point_did] << "\n";
     }
 
@@ -147,8 +147,8 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
     file_out_stream << "gid,position_x,value\n";
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
-        file_out_stream << mesh_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << mesh_ptr->point_position_x_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
         file_out_stream << point_value_vec[point_did] << "\n";
     }
 

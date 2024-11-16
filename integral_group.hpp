@@ -3,7 +3,7 @@
 #include <vector>
 #include "integral_line2.hpp"
 
-class IntegralField
+class IntegralGroup
 {
     /*
 
@@ -50,20 +50,20 @@ class IntegralField
     void evaluate_integral_Ni_Nj_derivative_Nk_x();
 
     // default constructor
-    IntegralField()
+    IntegralGroup()
     {
 
     }
 
     // constructor
-    IntegralField(std::vector<IntegralLine2*> integral_l2_ptr_vec_in)
+    IntegralGroup(std::vector<IntegralLine2*> integral_l2_ptr_vec_in)
     {
         integral_l2_ptr_vec = integral_l2_ptr_vec_in;
     }
 
 };
 
-void IntegralField::evaluate_Ni_derivative()
+void IntegralGroup::evaluate_Ni_derivative()
 {
     /*
 
@@ -88,7 +88,7 @@ void IntegralField::evaluate_Ni_derivative()
 
 }
 
-void IntegralField::evaluate_integral_Ni()
+void IntegralGroup::evaluate_integral_Ni()
 {
     /*
 
@@ -112,7 +112,7 @@ void IntegralField::evaluate_integral_Ni()
 
 }
 
-void IntegralField::evaluate_integral_derivative_Ni_x()
+void IntegralGroup::evaluate_integral_derivative_Ni_x()
 {
     /*
 
@@ -136,7 +136,7 @@ void IntegralField::evaluate_integral_derivative_Ni_x()
 
 }
 
-void IntegralField::evaluate_integral_Ni_Nj()
+void IntegralGroup::evaluate_integral_Ni_Nj()
 {
     /*
 
@@ -160,7 +160,7 @@ void IntegralField::evaluate_integral_Ni_Nj()
 
 }
 
-void IntegralField::evaluate_integral_Ni_derivative_Nj_x()
+void IntegralGroup::evaluate_integral_Ni_derivative_Nj_x()
 {
     /*
 
@@ -184,7 +184,7 @@ void IntegralField::evaluate_integral_Ni_derivative_Nj_x()
 
 }
 
-void IntegralField::evaluate_integral_div_Ni_dot_div_Nj()
+void IntegralGroup::evaluate_integral_div_Ni_dot_div_Nj()
 {
     /*
 
@@ -208,7 +208,7 @@ void IntegralField::evaluate_integral_div_Ni_dot_div_Nj()
 
 }
 
-void IntegralField::evaluate_integral_Ni_Nj_derivative_Nk_x()
+void IntegralGroup::evaluate_integral_Ni_Nj_derivative_Nk_x()
 {
     /*
 

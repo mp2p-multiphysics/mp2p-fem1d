@@ -1,9 +1,9 @@
-#ifndef BOUNDARY_PHYSICSGROUP
-#define BOUNDARY_PHYSICSGROUP
+#ifndef BOUNDARY_GROUP
+#define BOUNDARY_GROUP
 #include <vector>
 #include "boundary_line2.hpp"
 
-class BoundaryField
+class BoundaryGroup
 {
     /*
 
@@ -30,20 +30,20 @@ class BoundaryField
     void update_parameter();
 
     // default constructor
-    BoundaryField()
+    BoundaryGroup()
     {
 
     }
 
     // constructor
-    BoundaryField(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
+    BoundaryGroup(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
     {
         boundary_l2_ptr_vec = boundary_l2_ptr_vec_in;
     }
 
 };
 
-void BoundaryField::update_parameter()
+void BoundaryGroup::update_parameter()
 {
     /*
 
