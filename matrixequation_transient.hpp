@@ -155,18 +155,18 @@ class MatrixEquationTransient
             {
 
                 // iterate through each global ID
-                for (auto point_gid : variable_ptr->domain_ptr->point_gid_vec)
+                for (auto pgid : variable_ptr->domain_ptr->point_pgid_vec)
                 {
 
                     // get domain and group IDs
-                    int point_fid = variable_group_ptr->point_gid_to_fid_map[point_gid];
-                    int point_did = variable_ptr->domain_ptr->point_gid_to_did_map[point_gid];
+                    int pfid = variable_group_ptr->point_pgid_to_pfid_map[pgid];
+                    int pdid = variable_ptr->domain_ptr->point_pgid_to_pdid_map[pgid];
 
                     // get value from variable
-                    double value = variable_ptr->point_value_vec[point_did];
+                    double value = variable_ptr->point_value_vec[pdid];
 
                     // store value in x_vec
-                    int vec_row = start_row + point_fid;
+                    int vec_row = start_row + pfid;
                     x_vec.coeffRef(vec_row) = value;
 
                 }
@@ -282,19 +282,19 @@ void MatrixEquationTransient::store_solution()
         {
 
             // iterate through each global ID
-            for (auto point_gid : variable_ptr->domain_ptr->point_gid_vec)
+            for (auto pgid : variable_ptr->domain_ptr->point_pgid_vec)
             {
 
                 // get domain and group IDs
-                int point_fid = variable_group_ptr->point_gid_to_fid_map[point_gid];
-                int point_did = variable_ptr->domain_ptr->point_gid_to_did_map[point_gid];
+                int pfid = variable_group_ptr->point_pgid_to_pfid_map[pgid];
+                int pdid = variable_ptr->domain_ptr->point_pgid_to_pdid_map[pgid];
 
                 // get value from x_vec
-                int vec_row = start_row + point_fid;
+                int vec_row = start_row + pfid;
                 double value = x_vec.coeffRef(vec_row);
 
                 // store value in variable
-                variable_ptr->point_value_vec[point_did] = value;
+                variable_ptr->point_value_vec[pdid] = value;
 
             }
 

@@ -58,14 +58,14 @@ class BoundaryLine2
 
     // flux boundary condition data
     int num_boundary_domain = 0;
-    VectorInt boundary_element_gid_vec;
-    VectorInt boundary_pa_lid_vec;
+    VectorInt boundary_element_egid_vec;
+    VectorInt boundary_pa_plid_vec;
     VectorInt boundary_pa_bcid_vec;
 
     // flux boundary condition data
     int num_boundary_flux_domain = 0;
-    VectorInt boundary_flux_element_gid_vec;
-    VectorInt boundary_flux_pa_lid_vec;
+    VectorInt boundary_flux_element_egid_vec;
+    VectorInt boundary_flux_pa_plid_vec;
     VectorInt boundary_flux_pa_bcid_vec;
     std::vector<std::string> boundary_flux_type_str_vec;
     Vector2D boundary_flux_parameter_vec;
@@ -79,8 +79,8 @@ class BoundaryLine2
 
     // value boundary condition data
     int num_boundary_value_domain = 0;
-    VectorInt boundary_value_element_gid_vec;
-    VectorInt boundary_value_pa_lid_vec;
+    VectorInt boundary_value_element_egid_vec;
+    VectorInt boundary_value_pa_plid_vec;
     VectorInt boundary_value_pa_bcid_vec;
     std::vector<std::string> boundary_value_type_str_vec;
     Vector2D boundary_value_parameter_vec;
@@ -164,8 +164,8 @@ void BoundaryLine2::set_boundary_flux(int boundaryconfig_id, std::string type_st
 
         // transfer data to flux-type boundary arrays
         num_boundary_flux_domain++;
-        boundary_flux_element_gid_vec.push_back(boundary_element_gid_vec[bid]);
-        boundary_flux_pa_lid_vec.push_back(boundary_pa_lid_vec[bid]);
+        boundary_flux_element_egid_vec.push_back(boundary_element_egid_vec[bid]);
+        boundary_flux_pa_plid_vec.push_back(boundary_pa_plid_vec[bid]);
         boundary_flux_pa_bcid_vec.push_back(boundary_pa_bcid_vec[bid]);
         boundary_flux_type_str_vec.push_back(type_str);
         boundary_flux_parameter_vec.push_back(parameter_vec);
@@ -222,8 +222,8 @@ void BoundaryLine2::set_boundary_flux(int boundaryconfig_id, std::string type_st
 
         // transfer data to flux-type boundary arrays
         num_boundary_flux_domain++;
-        boundary_flux_element_gid_vec.push_back(boundary_element_gid_vec[bid]);
-        boundary_flux_pa_lid_vec.push_back(boundary_pa_lid_vec[bid]);
+        boundary_flux_element_egid_vec.push_back(boundary_element_egid_vec[bid]);
+        boundary_flux_pa_plid_vec.push_back(boundary_pa_plid_vec[bid]);
         boundary_flux_pa_bcid_vec.push_back(boundary_pa_bcid_vec[bid]);
         boundary_flux_type_str_vec.push_back(type_str);
         boundary_flux_parameter_vec.push_back({});
@@ -278,8 +278,8 @@ void BoundaryLine2::set_boundary_value(int boundaryconfig_id, std::string type_s
 
         // transfer data to flux-type boundary arrays
         num_boundary_value_domain++;
-        boundary_value_element_gid_vec.push_back(boundary_element_gid_vec[bid]);
-        boundary_value_pa_lid_vec.push_back(boundary_pa_lid_vec[bid]);
+        boundary_value_element_egid_vec.push_back(boundary_element_egid_vec[bid]);
+        boundary_value_pa_plid_vec.push_back(boundary_pa_plid_vec[bid]);
         boundary_value_pa_bcid_vec.push_back(boundary_pa_bcid_vec[bid]);
         boundary_value_type_str_vec.push_back(type_str);
         boundary_value_parameter_vec.push_back(parameter_vec);
@@ -336,8 +336,8 @@ void BoundaryLine2::set_boundary_value(int boundaryconfig_id, std::string type_s
 
         // transfer data to flux-type boundary arrays
         num_boundary_value_domain++;
-        boundary_value_element_gid_vec.push_back(boundary_element_gid_vec[bid]);
-        boundary_value_pa_lid_vec.push_back(boundary_pa_lid_vec[bid]);
+        boundary_value_element_egid_vec.push_back(boundary_element_egid_vec[bid]);
+        boundary_value_pa_plid_vec.push_back(boundary_pa_plid_vec[bid]);
         boundary_value_pa_bcid_vec.push_back(boundary_pa_bcid_vec[bid]);
         boundary_value_type_str_vec.push_back(type_str);
         boundary_value_parameter_vec.push_back({});
@@ -390,19 +390,19 @@ void BoundaryLine2::update_parameter()
             // get point domain ID
 
             // get element domain ID
-            int e_gid = boundary_flux_element_gid_vec[bfid];
-            int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
+            int e_gid = boundary_flux_element_egid_vec[bfid];
+            int e_did = mesh_ptr->element_egid_to_edid_map[e_gid];
 
             // get points surrounding element
             // select point affected by boundary
-            int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
-            int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
-            int pa_lid = boundary_flux_pa_lid_vec[bfid];
+            int p0_gid = mesh_ptr->element_p0_pgid_vec[e_did];
+            int p1_gid = mesh_ptr->element_p1_pgid_vec[e_did];
+            int pa_lid = boundary_flux_pa_plid_vec[bfid];
             int p_gid_arr[2] = {p0_gid, p1_gid};
 
             // get point domain ID
             int pa_gid = p_gid_arr[pa_lid];
-            int pa_did = mesh_ptr->point_gid_to_did_map[pa_gid];
+            int pa_did = mesh_ptr->point_pgid_to_pdid_map[pa_gid];
 
             // get mesh coordinate
             double position_x = mesh_ptr->point_position_x_vec[pa_did];
@@ -444,19 +444,19 @@ void BoundaryLine2::update_parameter()
             // get point domain ID
 
             // get element domain ID
-            int e_gid = boundary_value_element_gid_vec[bvid];
-            int e_did = mesh_ptr->element_gid_to_did_map[e_gid];
+            int e_gid = boundary_value_element_egid_vec[bvid];
+            int e_did = mesh_ptr->element_egid_to_edid_map[e_gid];
 
             // get points surrounding element
             // select point affected by boundary
-            int p0_gid = mesh_ptr->element_p0_gid_vec[e_did];
-            int p1_gid = mesh_ptr->element_p1_gid_vec[e_did];
-            int pa_lid = boundary_value_pa_lid_vec[bvid];
+            int p0_gid = mesh_ptr->element_p0_pgid_vec[e_did];
+            int p1_gid = mesh_ptr->element_p1_pgid_vec[e_did];
+            int pa_lid = boundary_value_pa_plid_vec[bvid];
             int p_gid_arr[2] = {p0_gid, p1_gid};
 
             // get point domain ID
             int pa_gid = p_gid_arr[pa_lid];
-            int pa_did = mesh_ptr->point_gid_to_did_map[pa_gid];
+            int pa_did = mesh_ptr->point_pgid_to_pdid_map[pa_gid];
 
             // get mesh coordinate
             double position_x = mesh_ptr->point_position_x_vec[pa_did];
@@ -515,8 +515,8 @@ void BoundaryLine2::read_boundary(std::string file_in_str)
             // store values in appropriate vector
             switch (value_num)
             {
-                case 0: boundary_element_gid_vec.push_back(std::stoi(value_str)); break;
-                case 1: boundary_pa_lid_vec.push_back(std::stoi(value_str)); break;
+                case 0: boundary_element_egid_vec.push_back(std::stoi(value_str)); break;
+                case 1: boundary_pa_plid_vec.push_back(std::stoi(value_str)); break;
                 case 2: boundary_pa_bcid_vec.push_back(std::stoi(value_str)); break;
             }
 

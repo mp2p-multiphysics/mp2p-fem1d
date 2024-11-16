@@ -113,11 +113,11 @@ void ScalarLine2::output_csv(std::string file_out_str)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int point_did = 0; point_did < num_point_domain; point_did++)
+    for (int pdid = 0; pdid < num_point_domain; pdid++)
     {
-        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
-        file_out_stream << point_value_vec[point_did] << "\n";
+        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
+        file_out_stream << point_value_vec[pdid] << "\n";
     }
 
 }
@@ -169,11 +169,11 @@ void ScalarLine2::output_csv(std::string file_out_base_str, int ts)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int point_did = 0; point_did < num_point_domain; point_did++)
+    for (int pdid = 0; pdid < num_point_domain; pdid++)
     {
-        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
-        file_out_stream << point_value_vec[point_did] << "\n";
+        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
+        file_out_stream << point_value_vec[pdid] << "\n";
     }
 
 }
@@ -201,21 +201,21 @@ void ScalarLine2::update_value()
     }
 
     // iterate through each point in scalar
-    for (int point_did = 0; point_did < domain_ptr->num_point_domain; point_did++)
+    for (int pdid = 0; pdid < domain_ptr->num_point_domain; pdid++)
     {
 
         // get domain coordinate
-        double position_x = domain_ptr->point_position_x_vec[point_did];
+        double position_x = domain_ptr->point_position_x_vec[pdid];
 
         // iterate through each variable that scalar depends on
         VectorDouble value_vec;
         for (auto variable_ptr : variable_ptr_vec)
         {
-            value_vec.push_back(variable_ptr->point_value_vec[point_did]);
+            value_vec.push_back(variable_ptr->point_value_vec[pdid]);
         }
 
         // calculate scalar value
-        point_value_vec[point_did] = value_function(position_x, value_vec);
+        point_value_vec[pdid] = value_function(position_x, value_vec);
 
     }
 

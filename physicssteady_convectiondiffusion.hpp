@@ -179,32 +179,32 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
 {
 
     // iterate for each domain element
-    for (int element_did = 0; element_did < domain_ptr->num_element_domain; element_did++)
+    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++)
     {
 
         // get global ID of points around element
-        int p0_gid = domain_ptr->element_p0_gid_vec[element_did];
-        int p1_gid = domain_ptr->element_p1_gid_vec[element_did];
+        int p0_pgid = domain_ptr->element_p0_pgid_vec[edid];
+        int p1_pgid = domain_ptr->element_p1_pgid_vec[edid];
 
         // get domain ID of points
         // used for getting properties and integrals
-        int p0_did = domain_ptr->point_gid_to_did_map[p0_gid];
-        int p1_did = domain_ptr->point_gid_to_did_map[p1_gid];
-        int did_arr[2] = {p0_did, p1_did};
+        int p0_pdid = domain_ptr->point_pgid_to_pdid_map[p0_pgid];
+        int p1_pdid = domain_ptr->point_pgid_to_pdid_map[p1_pgid];
+        int pdid_arr[2] = {p0_pdid, p1_pdid};
 
         // get velocity of points around element
-        double velx_p0 = velocity_x_ptr->point_value_vec[p0_did];
-        double velx_p1 = velocity_x_ptr->point_value_vec[p1_did];
+        double velx_p0 = velocity_x_ptr->point_value_vec[p0_pdid];
+        double velx_p1 = velocity_x_ptr->point_value_vec[p1_pdid];
         double velx_arr[2] = {velx_p0, velx_p1};
 
         // get diffusion coefficient of points around elemen
-        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_did];
-        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_did];
+        double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_pdid];
+        double diffcoeff_p1 = diffusioncoefficient_ptr->point_value_vec[p1_pdid];
         double diffcoeff_arr[2] = {diffcoeff_p0, diffcoeff_p1};
 
         // get generation coefficient of points around element
-        double gencoeff_p0 = generationcoefficient_ptr->point_value_vec[p0_did];
-        double gencoeff_p1 = generationcoefficient_ptr->point_value_vec[p1_did];
+        double gencoeff_p0 = generationcoefficient_ptr->point_value_vec[p0_pdid];
+        double gencoeff_p1 = generationcoefficient_ptr->point_value_vec[p1_pdid];
         double gencoeff_arr[2] = {gencoeff_p0, gencoeff_p1};
 
         // calculate a_mat coefficients
@@ -213,22 +213,22 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
 
         // get group ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = value_group_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = value_group_ptr->point_gid_to_fid_map[p1_gid];
-        int fid_arr[2] = {p0_fid, p1_fid};
+        int p0_pfid = value_group_ptr->point_pgid_to_pfid_map[p0_pgid];
+        int p1_pfid = value_group_ptr->point_pgid_to_pfid_map[p1_pgid];
+        int pfid_arr[2] = {p0_pfid, p1_pfid};
 
         // calculate a_mat coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++){
         for (int indx_j = 0; indx_j < 2; indx_j++){
 
             // calculate matrix row and column
-            int mat_row = start_row + fid_arr[indx_i];
-            int mat_col = value_group_ptr->start_col + fid_arr[indx_j];
+            int mat_row = start_row + pfid_arr[indx_i];
+            int mat_col = value_group_ptr->start_col + pfid_arr[indx_j];
             
             // fill up a_mat
             a_mat.coeffRef(mat_row, mat_col) += (
-                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[element_did][indx_i][indx_j] +
-                velx_arr[indx_i]*integral_ptr->integral_Ni_derivative_Nj_x_vec[element_did][indx_i][indx_j]
+                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j] +
+                velx_arr[indx_i]*integral_ptr->integral_Ni_derivative_Nj_x_vec[edid][indx_i][indx_j]
             );
 
         }}
@@ -236,50 +236,50 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
         // calculate b_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
-            int mat_row = start_row + fid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[element_did][indx_i];
+            int mat_row = start_row + pfid_arr[indx_i];
+            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[edid][indx_i];
         }
 
     }
 
     // iterate for each flux boundary element
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_flux_domain; boundary_id++)
+    for (int bfid = 0; bfid < boundary_ptr->num_boundary_flux_domain; bfid++)
     {
 
         // get global ID of element
-        int e_gid = boundary_ptr->boundary_flux_element_gid_vec[boundary_id];
+        int egid = boundary_ptr->boundary_flux_element_egid_vec[bfid];
 
         // get domain ID of element
         // used for getting global ID of points
-        int e_did = domain_ptr->element_gid_to_did_map[e_gid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
 
         // get global ID of points
-        int p0_gid = domain_ptr->element_p0_gid_vec[e_did];
-        int p1_gid = domain_ptr->element_p1_gid_vec[e_did];
+        int p0_pgid = domain_ptr->element_p0_pgid_vec[edid];
+        int p1_pgid = domain_ptr->element_p1_pgid_vec[edid];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->boundary_flux_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_plid = boundary_ptr->boundary_flux_pa_plid_vec[bfid];  // 0 or 1
 
         // get group ID of temperature points
         // used for getting matrix rows and columns
-        int p0_fid = value_group_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = value_group_ptr->point_gid_to_fid_map[p1_gid];
-        int fid_arr[2] = {p0_fid, p1_fid};
+        int p0_pfid = value_group_ptr->point_pgid_to_pfid_map[p0_pgid];
+        int p1_pfid = value_group_ptr->point_pgid_to_pfid_map[p1_pgid];
+        int pfid_arr[2] = {p0_pfid, p1_pfid};
 
         // identify boundary type and parameters
-        std::string type_str = boundary_ptr->boundary_flux_type_str_vec[boundary_id];
-        VectorDouble parameter_vec = boundary_ptr->boundary_flux_parameter_vec[boundary_id];
+        std::string type_str = boundary_ptr->boundary_flux_type_str_vec[bfid];
+        VectorDouble parameter_vec = boundary_ptr->boundary_flux_parameter_vec[bfid];
 
         // apply boundary condition
         if (type_str == "neumann")
         {
-            int mat_row = start_row + fid_arr[pa_lid];
+            int mat_row = start_row + pfid_arr[pa_plid];
             b_vec.coeffRef(mat_row) += parameter_vec[0];
         }
         else if (type_str == "robin")
         {
-            int mat_row = start_row + fid_arr[pa_lid];
-            int mat_col = value_group_ptr->start_col + fid_arr[pa_lid];
+            int mat_row = start_row + pfid_arr[pa_plid];
+            int mat_col = value_group_ptr->start_col + pfid_arr[pa_plid];
             b_vec.coeffRef(mat_row) += parameter_vec[0];
             a_mat.coeffRef(mat_row, mat_col) += -parameter_vec[1];
         }
@@ -287,34 +287,34 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
     }
 
     // clear rows with value boundary elements
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_value_domain; boundary_id++)
+    for (int bvid = 0; bvid < boundary_ptr->num_boundary_value_domain; bvid++)
     {
 
         // get global ID of element
-        int e_gid = boundary_ptr->boundary_value_element_gid_vec[boundary_id];
+        int egid = boundary_ptr->boundary_value_element_egid_vec[bvid];
 
         // get domain ID of element
         // used for getting global ID of points
-        int e_did = domain_ptr->element_gid_to_did_map[e_gid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
 
         // get global ID of points
-        int p0_gid = domain_ptr->element_p0_gid_vec[e_did];
-        int p1_gid = domain_ptr->element_p1_gid_vec[e_did];
+        int p0_pgid = domain_ptr->element_p0_pgid_vec[edid];
+        int p1_pgid = domain_ptr->element_p1_pgid_vec[edid];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->boundary_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_plid = boundary_ptr->boundary_value_pa_plid_vec[bvid];  // 0 or 1
 
         // get group ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = value_group_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = value_group_ptr->point_gid_to_fid_map[p1_gid];
-        int fid_arr[2] = {p0_fid, p1_fid};
+        int p0_pfid = value_group_ptr->point_pgid_to_pfid_map[p0_pgid];
+        int p1_pfid = value_group_ptr->point_pgid_to_pfid_map[p1_pgid];
+        int pfid_arr[2] = {p0_pfid, p1_pfid};
 
         // erase entire row
         // -1 values indicate invalid points
-        if (pa_lid != -1)
+        if (pa_plid != -1)
         {
-            int mat_row = start_row + fid_arr[pa_lid];
+            int mat_row = start_row + pfid_arr[pa_plid];
             a_mat.row(mat_row) *= 0.;
             b_vec.coeffRef(mat_row) = 0.;
         }
@@ -322,39 +322,39 @@ void PhysicsSteadyConvectionDiffusion::matrix_fill_domain
     }
 
     // iterate for each value boundary element
-    for (int boundary_id = 0; boundary_id < boundary_ptr->num_boundary_value_domain; boundary_id++)
+    for (int bvid = 0; bvid < boundary_ptr->num_boundary_value_domain; bvid++)
     {
 
         // get global ID of element
-        int e_gid = boundary_ptr->boundary_value_element_gid_vec[boundary_id];
+        int egid = boundary_ptr->boundary_value_element_egid_vec[bvid];
 
         // get domain ID of element
         // used for getting global ID of points
-        int e_did = domain_ptr->element_gid_to_did_map[e_gid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
 
         // get global ID of points
-        int p0_gid = domain_ptr->element_p0_gid_vec[e_did];
-        int p1_gid = domain_ptr->element_p1_gid_vec[e_did];
+        int p0_pgid = domain_ptr->element_p0_pgid_vec[edid];
+        int p1_pgid = domain_ptr->element_p1_pgid_vec[edid];
 
         // get local ID of point where boundary is applied
-        int pa_lid = boundary_ptr->boundary_value_pa_lid_vec[boundary_id];  // 0 or 1
+        int pa_plid = boundary_ptr->boundary_value_pa_plid_vec[bvid];  // 0 or 1
         
         // get group ID of concentration points
         // used for getting matrix rows and columns
-        int p0_fid = value_group_ptr->point_gid_to_fid_map[p0_gid];
-        int p1_fid = value_group_ptr->point_gid_to_fid_map[p1_gid];
-        int fid_arr[2] = {p0_fid, p1_fid};
+        int p0_pfid = value_group_ptr->point_pgid_to_pfid_map[p0_pgid];
+        int p1_pfid = value_group_ptr->point_pgid_to_pfid_map[p1_pgid];
+        int pfid_arr[2] = {p0_pfid, p1_pfid};
 
         // identify boundary type and parameters
-        std::string type_str = boundary_ptr->boundary_value_type_str_vec[boundary_id];
-        VectorDouble parameter_vec = boundary_ptr->boundary_value_parameter_vec[boundary_id];
+        std::string type_str = boundary_ptr->boundary_value_type_str_vec[bvid];
+        VectorDouble parameter_vec = boundary_ptr->boundary_value_parameter_vec[bvid];
 
         // apply boundary condition
         if (type_str == "dirichlet")
         {
-            int mat_row = start_row + fid_arr[pa_lid];
-            int mat_col = value_group_ptr->start_col + fid_arr[pa_lid];
-            if (pa_lid != -1)  // -1 values indicate invalid points
+            int mat_row = start_row + pfid_arr[pa_plid];
+            int mat_col = value_group_ptr->start_col + pfid_arr[pa_plid];
+            if (pa_plid != -1)  // -1 values indicate invalid points
             {
                 a_mat.coeffRef(mat_row, mat_col) += 1.;
                 b_vec.coeffRef(mat_row) += parameter_vec[0];

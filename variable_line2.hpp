@@ -54,7 +54,7 @@ class VariableLine2
         num_point_domain = domain_ptr->num_point_domain;
 
         // populate value vector with initial values
-        for (int point_did = 0; point_did < num_point_domain; point_did++)
+        for (int pdid = 0; pdid < num_point_domain; pdid++)
         {
             point_value_vec.push_back(u_init_in);
         }
@@ -89,11 +89,11 @@ void VariableLine2::output_csv(std::string file_out_str)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int point_did = 0; point_did < num_point_domain; point_did++)
+    for (int pdid = 0; pdid < num_point_domain; pdid++)
     {
-        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
-        file_out_stream << point_value_vec[point_did] << "\n";
+        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
+        file_out_stream << point_value_vec[pdid] << "\n";
     }
 
 }
@@ -145,11 +145,11 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int point_did = 0; point_did < num_point_domain; point_did++)
+    for (int pdid = 0; pdid < num_point_domain; pdid++)
     {
-        file_out_stream << domain_ptr->point_gid_vec[point_did] << ",";
-        file_out_stream << domain_ptr->point_position_x_vec[point_did] << ",";
-        file_out_stream << point_value_vec[point_did] << "\n";
+        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
+        file_out_stream << point_value_vec[pdid] << "\n";
     }
 
 }

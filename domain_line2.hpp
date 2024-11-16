@@ -41,16 +41,16 @@ class DomainLine2
 
     // point data
     int num_point_domain = 0;
-    VectorInt point_gid_vec;
+    VectorInt point_pgid_vec;
     VectorDouble point_position_x_vec;
-    MapIntInt point_gid_to_did_map;
+    MapIntInt point_pgid_to_pdid_map;
 
     // element data
     int num_element_domain = 0;
-    VectorInt element_gid_vec;
-    VectorInt element_p0_gid_vec;
-    VectorInt element_p1_gid_vec;
-    MapIntInt element_gid_to_did_map;
+    VectorInt element_egid_vec;
+    VectorInt element_p0_pgid_vec;
+    VectorInt element_p1_pgid_vec;
+    MapIntInt element_egid_to_edid_map;
 
     // default constructor
     DomainLine2 ()
@@ -118,7 +118,7 @@ void DomainLine2::read_domain_point(std::string file_in_point_str)
             // store values in appropriate vector
             switch (value_point_num)
             {
-                case 0: point_gid_vec.push_back(std::stoi(value_point_str)); break;
+                case 0: point_pgid_vec.push_back(std::stoi(value_point_str)); break;
                 case 1: point_position_x_vec.push_back(std::stod(value_point_str)); break;
             }
 
@@ -135,8 +135,8 @@ void DomainLine2::read_domain_point(std::string file_in_point_str)
     // generate map of global to domain ID for points
     for (int point_did = 0; point_did < num_point_domain; point_did++)
     {
-        int point_gid = point_gid_vec[point_did];
-        point_gid_to_did_map[point_gid] = point_did;
+        int point_gid = point_pgid_vec[point_did];
+        point_pgid_to_pdid_map[point_gid] = point_did;
     }
 
 }
@@ -179,9 +179,9 @@ void DomainLine2::read_domain_element(std::string file_in_element_str)
             // store values in appropriate vector
             switch (value_element_num)
             {
-                case 0: element_gid_vec.push_back(std::stoi(value_element_str)); break;
-                case 1: element_p0_gid_vec.push_back(std::stod(value_element_str)); break;
-                case 2: element_p1_gid_vec.push_back(std::stod(value_element_str)); break;
+                case 0: element_egid_vec.push_back(std::stoi(value_element_str)); break;
+                case 1: element_p0_pgid_vec.push_back(std::stod(value_element_str)); break;
+                case 2: element_p1_pgid_vec.push_back(std::stod(value_element_str)); break;
             }
 
             // increment value count
@@ -195,10 +195,10 @@ void DomainLine2::read_domain_element(std::string file_in_element_str)
     file_in_element_stream.close();
 
     // generate map of global to domain ID for elements
-    for (int element_did = 0; element_did < num_element_domain; element_did++)
+    for (int edid = 0; edid < num_element_domain; edid++)
     {
-        int element_gid = element_gid_vec[element_did];
-        element_gid_to_did_map[element_gid] = element_did;
+        int egid = element_egid_vec[edid];
+        element_egid_to_edid_map[egid] = edid;
     }
 
 }

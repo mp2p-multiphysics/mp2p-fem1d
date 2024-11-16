@@ -24,8 +24,8 @@ class VariableGroup
     int num_point_group = 0;
 
     // point IDs
-    VectorInt point_gid_vec;  // key: group ID; value: global ID
-    MapIntInt point_gid_to_fid_map;  // key: global ID; value: group ID
+    VectorInt point_pgid_vec;  // key: group ID; value: global ID
+    MapIntInt point_pgid_to_pfid_map;  // key: global ID; value: group ID
 
     // variables and domains
     std::vector<VariableLine2*> variable_l2_ptr_vec;  // vector of variables
@@ -62,36 +62,36 @@ class VariableGroup
         // iterate through each variable and get set of global IDs
         for (auto variable_ptr : variable_l2_ptr_vec)
         {
-            for (auto &point_gid : variable_ptr->domain_ptr->point_gid_vec)
+            for (auto &pgid : variable_ptr->domain_ptr->point_pgid_vec)
             {
-                point_gid_set.insert(point_gid);
+                point_gid_set.insert(pgid);
             }
         }
 
         // initialize group ID
-        int point_fid = 0;
+        int pfid = 0;
 
         // iterate through each global ID and assign a group ID
-        for (auto point_gid : point_gid_set)
+        for (auto pgid : point_gid_set)
         {
 
             // skip if global ID is already recorded
-            if (point_gid_to_fid_map.count(point_gid))
+            if (point_pgid_to_pfid_map.count(pgid))
             {
                 continue;
             }
 
             // map global ID to group ID and vice versa
-            point_gid_to_fid_map[point_gid] = point_fid;
-            point_gid_vec.push_back(point_gid);
+            point_pgid_to_pfid_map[pgid] = pfid;
+            point_pgid_vec.push_back(pgid);
             
             // increment group ID
-            point_fid++;
+            pfid++;
 
         }
 
         // total number of group points
-        num_point_group = point_fid;
+        num_point_group = pfid;
 
     }
 
