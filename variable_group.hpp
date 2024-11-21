@@ -1,5 +1,5 @@
-#ifndef VARIABLE_FIELDGROUP
-#define VARIABLE_FIELDGROUP
+#ifndef VARIABLE_GROUP
+#define VARIABLE_GROUP
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -21,7 +21,7 @@ class VariableGroup
     public:
 
     // number of unique points in group
-    int num_point_group = 0;
+    int num_point = 0;
 
     // point IDs
     VectorInt point_pgid_vec;  // key: group ID; value: global ID
@@ -35,10 +35,7 @@ class VariableGroup
     int start_col = -1;
 
     // default constructor
-    VariableGroup()
-    {
-
-    }
+    VariableGroup() {}
 
     // constructor
     VariableGroup(std::vector<VariableLine2*> variable_l2_ptr_vec_in)
@@ -62,7 +59,7 @@ class VariableGroup
         // iterate through each variable and get set of global IDs
         for (auto variable_ptr : variable_l2_ptr_vec)
         {
-            for (auto &pgid : variable_ptr->domain_ptr->point_pgid_vec)
+            for (auto &pgid : variable_ptr->domain_ptr->point_pdid_to_pgid_vec)
             {
                 point_gid_set.insert(pgid);
             }
@@ -91,7 +88,7 @@ class VariableGroup
         }
 
         // total number of group points
-        num_point_group = pfid;
+        num_point = pfid;
 
     }
 

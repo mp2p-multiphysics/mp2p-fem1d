@@ -50,10 +50,7 @@ class MatrixEquationSteady
     void store_solution();
 
     // default constructor
-    MatrixEquationSteady()
-    {
-
-    }
+    MatrixEquationSteady() {};
 
     // constructor
     MatrixEquationSteady(std::vector<PhysicsSteadyBase*> physics_ptr_vec_in)
@@ -83,7 +80,7 @@ class MatrixEquationSteady
                 if (variable_group_ptr->start_col == -1)
                 {
                     variable_group_ptr->start_col = assign_start_col;
-                    assign_start_col += variable_group_ptr->num_point_group;
+                    assign_start_col += variable_group_ptr->num_point;
                 }
 
                 // assign starting row to physics if none yet
@@ -148,7 +145,7 @@ class MatrixEquationSteady
             {
 
                 // iterate through each global ID
-                for (auto pgid : variable_ptr->domain_ptr->point_pgid_vec)
+                for (auto pgid : variable_ptr->domain_ptr->point_pdid_to_pgid_vec)
                 {
 
                     // get domain and group IDs
@@ -249,7 +246,7 @@ void MatrixEquationSteady::store_solution()
         {
 
             // iterate through each global ID
-            for (auto pgid : variable_ptr->domain_ptr->point_pgid_vec)
+            for (auto pgid : variable_ptr->domain_ptr->point_pdid_to_pgid_vec)
             {
 
                 // get domain and group IDs

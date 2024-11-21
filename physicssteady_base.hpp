@@ -55,10 +55,7 @@ class PhysicsSteadyBase
     virtual std::vector<VariableGroup*> get_variable_group_ptr_vec();
 
     // default constructor
-    PhysicsSteadyBase()
-    {
-
-    }
+    PhysicsSteadyBase() {}
 
 };
 

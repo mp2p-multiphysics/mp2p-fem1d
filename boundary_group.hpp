@@ -27,13 +27,11 @@ class BoundaryGroup
     std::vector<BoundaryLine2*> boundary_l2_ptr_vec;
 
     // functions
+    void set_boundary_type(VectorInt boundarytype_essential_vec, VectorInt boundarytype_natural_vec);
     void update_parameter();
 
     // default constructor
-    BoundaryGroup()
-    {
-
-    }
+    BoundaryGroup() {}
 
     // constructor
     BoundaryGroup(std::vector<BoundaryLine2*> boundary_l2_ptr_vec_in)
@@ -42,6 +40,18 @@ class BoundaryGroup
     }
 
 };
+
+
+void BoundaryGroup::set_boundary_type(VectorInt boundarytype_essential_vec, VectorInt boundarytype_natural_vec)
+{
+
+    // iterate through each boundary
+    for (auto boundary_ptr : boundary_l2_ptr_vec)
+    {
+        boundary_ptr->set_boundary_type(boundarytype_essential_vec, boundarytype_natural_vec);
+    }
+
+}
 
 void BoundaryGroup::update_parameter()
 {

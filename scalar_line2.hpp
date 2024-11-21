@@ -1,6 +1,9 @@
 #ifndef SCALAR_LINE2
 #define SCALAR_LINE2
+#include <fstream>
+#include <sstream>
 #include <functional>
+#include "container_typedef.hpp"
 #include "domain_line2.hpp"
 #include "variable_line2.hpp"
 
@@ -30,10 +33,12 @@ class ScalarLine2
 
     // domain where variable is applied
     DomainLine2* domain_ptr;
-    int num_point_domain = 0;  // number of points in domain
 
-    // values in variable
-    VectorDouble point_value_vec;  // key: domain ID; value: value
+    // values in scalar
+    VectorDouble point_value_vec;  // key: point domain ID; value: value
+    Vector2D element_value_vec;  // key: element domain ID, point local ID; value: value
+
+    // use for non-constant scalars
     bool is_value_constant = true;
     double value_constant = 0;  // used if value is constant
     std::function<double(double, VectorDouble)> value_function;  // used if value is non-constant
@@ -45,25 +50,21 @@ class ScalarLine2
     void update_value();
 
     // default constructor
-    ScalarLine2()
-    {
-
-    }
-
+    ScalarLine2() {}
+    
     // constructor for constant values
     ScalarLine2(DomainLine2 &domain_in, double value_constant_in)
     {
 
         // store domain
         domain_ptr = &domain_in;
-        num_point_domain = domain_ptr->num_point_domain;
 
         // store values
         is_value_constant = true;
         value_constant = value_constant_in;
 
         // populate initial values
-        point_value_vec = VectorDouble(num_point_domain, value_constant);
+        point_value_vec = VectorDouble(domain_ptr->num_point, value_constant);
 
     }
 
@@ -73,7 +74,6 @@ class ScalarLine2
 
         // store domain
         domain_ptr = &domain_in;
-        num_point_domain = domain_ptr->num_point_domain;
 
         // store values
         is_value_constant = false;
@@ -81,7 +81,7 @@ class ScalarLine2
         variable_ptr_vec = variable_ptr_vec_in;
 
         // populate initial values
-        point_value_vec = VectorDouble(num_point_domain, 0.);  // unused placeholder
+        point_value_vec = VectorDouble(domain_ptr->num_point, 0.);  // unused placeholder
 
     }
 
@@ -113,9 +113,9 @@ void ScalarLine2::output_csv(std::string file_out_str)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int pdid = 0; pdid < num_point_domain; pdid++)
+    for (int pdid = 0; pdid < domain_ptr->num_point; pdid++)
     {
-        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
         file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
         file_out_stream << point_value_vec[pdid] << "\n";
     }
@@ -169,9 +169,9 @@ void ScalarLine2::output_csv(std::string file_out_base_str, int ts)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int pdid = 0; pdid < num_point_domain; pdid++)
+    for (int pdid = 0; pdid < domain_ptr->num_point; pdid++)
     {
-        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
         file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
         file_out_stream << point_value_vec[pdid] << "\n";
     }
@@ -201,7 +201,7 @@ void ScalarLine2::update_value()
     }
 
     // iterate through each point in scalar
-    for (int pdid = 0; pdid < domain_ptr->num_point_domain; pdid++)
+    for (int pdid = 0; pdid < domain_ptr->num_point; pdid++)
     {
 
         // get domain coordinate

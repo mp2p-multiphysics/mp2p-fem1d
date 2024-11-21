@@ -22,10 +22,7 @@ class DomainGroup
     std::vector<DomainLine2*> domain_l2_ptr_vec;
 
     // default constructor
-    DomainGroup()
-    {
-
-    }
+    DomainGroup() {}
 
     // constructor
     DomainGroup(std::vector<DomainLine2*> domain_l2_ptr_vec_in)

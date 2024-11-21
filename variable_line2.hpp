@@ -1,6 +1,7 @@
 #ifndef VARIABLE_LINE2
 #define VARIABLE_LINE2
 #include <fstream>
+#include <sstream>
 #include "domain_line2.hpp"
 #include "container_typedef.hpp"
 
@@ -27,7 +28,7 @@ class VariableLine2
     public:
 
     // values in variable
-    int num_point_domain = 0;  // number of points in domain
+    int num_point = 0;  // number of points in domain
     VectorDouble point_value_vec;  // key: domain ID; value: value
     
     // domain where variable is applied
@@ -38,10 +39,7 @@ class VariableLine2
     void output_csv(std::string file_out_base_str, int ts);
 
     // default constructor
-    VariableLine2()
-    {
-
-    }
+    VariableLine2() {}
 
     // constructor
     VariableLine2(DomainLine2 &domain_in, double u_init_in)
@@ -51,10 +49,10 @@ class VariableLine2
         domain_ptr = &domain_in;
 
         // get number of domain points
-        num_point_domain = domain_ptr->num_point_domain;
+        num_point = domain_ptr->num_point;
 
         // populate value vector with initial values
-        for (int pdid = 0; pdid < num_point_domain; pdid++)
+        for (int pdid = 0; pdid < num_point; pdid++)
         {
             point_value_vec.push_back(u_init_in);
         }
@@ -89,9 +87,9 @@ void VariableLine2::output_csv(std::string file_out_str)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int pdid = 0; pdid < num_point_domain; pdid++)
+    for (int pdid = 0; pdid < num_point; pdid++)
     {
-        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
         file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
         file_out_stream << point_value_vec[pdid] << "\n";
     }
@@ -145,9 +143,9 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
 
     // write to file
     file_out_stream << "gid,position_x,value\n";
-    for (int pdid = 0; pdid < num_point_domain; pdid++)
+    for (int pdid = 0; pdid < num_point; pdid++)
     {
-        file_out_stream << domain_ptr->point_pgid_vec[pdid] << ",";
+        file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
         file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
         file_out_stream << point_value_vec[pdid] << "\n";
     }

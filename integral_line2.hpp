@@ -2,8 +2,9 @@
 #define INTEGRAL_LINE2
 #include <vector>
 #include "Eigen/Eigen"
-#include "domain_line2.hpp"
+#include "boundary_line2.hpp"
 #include "container_typedef.hpp"
+#include "domain_line2.hpp"
 
 class IntegralLine2
 {
@@ -45,15 +46,18 @@ class IntegralLine2
 
     public:
     
-    // domain
+    // domain and boundary
     DomainLine2 *domain_ptr;
+    BoundaryLine2 *boundary_ptr;
 
-    // vectors with test functions and derivatives
+    // vectors with domain test functions
+    // index as follows: [edid][integration_point][i]
+    Vector3D Ni_vec;
+    Vector3D derivative_Ni_x_vec;
     Vector2D jacobian_determinant_vec;
-    Vector3D N_vec;
-    Vector3D derivative_N_x_vec;
 
-    // vectors with integrals
+    // vectors with domain integrals
+    // index as follows: [edid][i][j][k]
     Vector2D integral_Ni_vec;
     Vector2D integral_derivative_Ni_x_vec;
     Vector3D integral_Ni_Nj_vec;
@@ -61,8 +65,18 @@ class IntegralLine2
     Vector3D integral_div_Ni_dot_div_Nj_vec;
     Vector4D integral_Ni_Nj_derivative_Nk_x_vec;
 
-    // functions for computing integrals
-    void evaluate_Ni_derivative();
+    // vectors with boundary test functions
+    // index as follows: [edid][boundary_key][i]
+    MapVector3D boundary_Ni_vec;
+    MapVector2D boundary_normal_x_vec;
+
+    // vectors with bounary integrals
+    // index as follows: [edid][boundary_key][i][j]
+    MapVector3D integral_boundary_Ni_vec;
+    MapVector4D integral_boundary_Ni_Nj_vec;
+
+    // functions for computing domain integrals
+    void evaluate_Ni();
     void evaluate_integral_Ni();
     void evaluate_integral_derivative_Ni_x();
     void evaluate_integral_Ni_Nj();
@@ -70,21 +84,31 @@ class IntegralLine2
     void evaluate_integral_div_Ni_dot_div_Nj();
     void evaluate_integral_Ni_Nj_derivative_Nk_x();
 
-    // default constructor
-    IntegralLine2()
-    {
+    // functions for computing boundary integrals
+    void evaluate_boundary_Ni();
+    void evaluate_integral_boundary_Ni();
+    void evaluate_integral_boundary_Ni_Nj();
 
-    }
+    // default constructor
+    IntegralLine2() {}
 
     // constructor
-    IntegralLine2(DomainLine2 &domain_in)
+    IntegralLine2(DomainLine2 &domain_in, BoundaryLine2 &boundary_in)
     {
+        
+        // store domain and boundaries
         domain_ptr = &domain_in;
+        boundary_ptr = &boundary_in;
+
+        // evaluate test functions
+        evaluate_Ni();
+        evaluate_boundary_Ni();
+
     }
 
 };
 
-void IntegralLine2::evaluate_Ni_derivative()
+void IntegralLine2::evaluate_Ni()
 {
     /*
 
@@ -107,7 +131,7 @@ void IntegralLine2::evaluate_Ni_derivative()
     double a_arr[2] = {-M_1_SQRT_3, +M_1_SQRT_3};
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++)
+    for (int edid = 0; edid < domain_ptr->num_element; edid++)
     {
 
         // initialize
@@ -183,9 +207,60 @@ void IntegralLine2::evaluate_Ni_derivative()
 
         // store in vectors
         jacobian_determinant_vec.push_back(jacobian_determinant_part_ml_vec);
-        N_vec.push_back(N_part_ml_vec);
-        derivative_N_x_vec.push_back(derivative_N_x_part_ml_vec);
+        Ni_vec.push_back(N_part_ml_vec);
+        derivative_Ni_x_vec.push_back(derivative_N_x_part_ml_vec);
         
+    }
+
+}
+
+void IntegralLine2::evaluate_boundary_Ni()
+{
+
+    // iterate through each boundary
+    for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
+    {
+
+        // get the element ID
+        int egid = boundary_ptr->boundary_egid_vec[bid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
+
+        // get boundary key
+        // for 1D elements, just use the local point
+        int boundary_key = boundary_ptr->boundary_pa_plid_vec[bid];
+
+        // get dimensionless coordinates
+        double a = 0;
+        switch (boundary_key)
+        {
+            case 0: a = -1.; break;
+            case 1: a = +1.; break;
+        }
+
+        // calculate normal vectors
+        double normal_x = 0;
+        switch (boundary_key)
+        {
+            case 0: normal_x = -1.; break;
+            case 1: normal_x = +1.; break;
+        }
+        boundary_normal_x_vec[edid][boundary_key] = normal_x;
+
+        // calculate test function values
+        for (int indx_i = 0; indx_i < 2; indx_i++)
+        {
+
+            // get test function N
+            double N = 0.;
+            switch (indx_i)
+            {
+                case 0: N = 0.5*(1 - a); break;
+                case 1: N = 0.5*(1 + a); break;
+            }
+            boundary_Ni_vec[edid][boundary_key].push_back(N);
+
+        }
+
     }
 
 }
@@ -207,7 +282,7 @@ void IntegralLine2::evaluate_integral_Ni()
     */
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector1D integral_part_i_vec;
@@ -217,7 +292,7 @@ void IntegralLine2::evaluate_integral_Ni()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * N_vec[edid][indx_l][indx_i];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * Ni_vec[edid][indx_l][indx_i];
         }
         integral_part_i_vec.push_back(integral_value);
     
@@ -245,7 +320,7 @@ void IntegralLine2::evaluate_integral_derivative_Ni_x()
     */
     
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector1D integral_part_i_vec;
@@ -255,7 +330,7 @@ void IntegralLine2::evaluate_integral_derivative_Ni_x()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * derivative_N_x_vec[edid][indx_l][indx_i];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * derivative_Ni_x_vec[edid][indx_l][indx_i];
         }
         integral_part_i_vec.push_back(integral_value);
     
@@ -283,7 +358,7 @@ void IntegralLine2::evaluate_integral_Ni_Nj()
     */
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -295,7 +370,7 @@ void IntegralLine2::evaluate_integral_Ni_Nj()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * N_vec[edid][indx_l][indx_i] * N_vec[edid][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * Ni_vec[edid][indx_l][indx_i] * Ni_vec[edid][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     
@@ -325,7 +400,7 @@ void IntegralLine2::evaluate_integral_Ni_derivative_Nj_x()
     */
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -337,7 +412,7 @@ void IntegralLine2::evaluate_integral_Ni_derivative_Nj_x()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * N_vec[edid][indx_l][indx_i] * derivative_N_x_vec[edid][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * Ni_vec[edid][indx_l][indx_i] * derivative_Ni_x_vec[edid][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     
@@ -367,7 +442,7 @@ void IntegralLine2::evaluate_integral_div_Ni_dot_div_Nj()
     */
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector2D integral_part_i_vec;
@@ -379,7 +454,7 @@ void IntegralLine2::evaluate_integral_div_Ni_dot_div_Nj()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * derivative_N_x_vec[edid][indx_l][indx_i] * derivative_N_x_vec[edid][indx_l][indx_j];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * derivative_Ni_x_vec[edid][indx_l][indx_i] * derivative_Ni_x_vec[edid][indx_l][indx_j];
         }
         integral_part_ij_vec.push_back(integral_value);
     
@@ -409,7 +484,7 @@ void IntegralLine2::evaluate_integral_Ni_Nj_derivative_Nk_x()
     */
 
     // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element_domain; edid++){  
+    for (int edid = 0; edid < domain_ptr->num_element; edid++){  
     
     // iterate for each test function combination
     Vector3D integral_part_i_vec;
@@ -423,7 +498,7 @@ void IntegralLine2::evaluate_integral_Ni_Nj_derivative_Nk_x()
         double integral_value = 0;
         for (int indx_l = 0; indx_l < 2; indx_l++) 
         {
-            integral_value += jacobian_determinant_vec[edid][indx_l] * N_vec[edid][indx_l][indx_i] * N_vec[edid][indx_l][indx_j] * derivative_N_x_vec[edid][indx_l][indx_k];
+            integral_value += jacobian_determinant_vec[edid][indx_l] * Ni_vec[edid][indx_l][indx_i] * Ni_vec[edid][indx_l][indx_j] * derivative_Ni_x_vec[edid][indx_l][indx_k];
         }
         integral_part_ijk_vec.push_back(integral_value);
     
@@ -433,6 +508,70 @@ void IntegralLine2::evaluate_integral_Ni_Nj_derivative_Nk_x()
     integral_part_i_vec.push_back(integral_part_ij_vec);
     }
     integral_Ni_Nj_derivative_Nk_x_vec.push_back(integral_part_i_vec);
+
+    }
+
+}
+
+void IntegralLine2::evaluate_integral_boundary_Ni()
+{
+
+    // iterate through each boundary
+    for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
+    {
+
+        // get the element ID
+        int egid = boundary_ptr->boundary_egid_vec[bid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
+
+        // get boundary key
+        // for 1D elements, just use the local point
+        int boundary_key = boundary_ptr->boundary_pa_plid_vec[bid];
+
+        // iterate for each test function combination
+        Vector1D integral_part_i_vec;
+        for (int indx_i = 0; indx_i < 2; indx_i++){
+
+            // calculate integral value
+            double integral_value = boundary_Ni_vec[edid][boundary_key][indx_i];
+            integral_part_i_vec.push_back(integral_value);
+
+        }
+        integral_boundary_Ni_vec[edid][boundary_key] = integral_part_i_vec;
+
+    }
+
+}
+
+void IntegralLine2::evaluate_integral_boundary_Ni_Nj()
+{
+
+    // iterate through each boundary
+    for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
+    {
+
+        // get the element ID
+        int egid = boundary_ptr->boundary_egid_vec[bid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
+
+        // get boundary key
+        // for 1D elements, just use the local point
+        int boundary_key = boundary_ptr->boundary_pa_plid_vec[bid];
+
+        // iterate for each test function combination
+        Vector2D integral_part_i_vec;
+        for (int indx_i = 0; indx_i < 2; indx_i++){
+        Vector1D integral_part_ij_vec;
+        for (int indx_j = 0; indx_j < 2; indx_j++){
+
+            // calculate integral value
+            double integral_value = boundary_Ni_vec[edid][boundary_key][indx_i];
+            integral_part_ij_vec.push_back(integral_value);
+
+        }
+        integral_part_i_vec.push_back(integral_part_ij_vec);
+        }
+        integral_boundary_Ni_Nj_vec[edid][boundary_key] = integral_part_i_vec;
 
     }
 

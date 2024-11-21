@@ -1,5 +1,5 @@
-#ifndef SCALAR_FIELDGROUP
-#define SCALAR_FIELDGROUP
+#ifndef SCALAR_GROUP
+#define SCALAR_GROUP
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -41,10 +41,7 @@ class ScalarGroup
     void update_value();
 
     // default constructor
-    ScalarGroup()
-    {
-
-    }
+    ScalarGroup() {}
 
     // constructor
     ScalarGroup(std::vector<ScalarLine2*> scalar_l2_ptr_vec_in)
@@ -68,7 +65,7 @@ class ScalarGroup
         // iterate through each variable and get set of global IDs
         for (auto scalar_ptr : scalar_l2_ptr_vec)
         {
-            for (auto &pgid : scalar_ptr->domain_ptr->point_pgid_vec)
+            for (auto &pgid : scalar_ptr->domain_ptr->point_pdid_to_pgid_vec)
             {
                 point_pgid_set.insert(pgid);
             }
