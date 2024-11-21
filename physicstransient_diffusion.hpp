@@ -1,22 +1,22 @@
-#ifndef PHYSICSSTEADY_DIFFUSION
-#define PHYSICSSTEADY_DIFFUSION
+#ifndef PHYSICSTRANSIENT_DIFFUSION
+#define PHYSICSTRANSIENT_DIFFUSION
 #include <vector>
 #include "Eigen/Eigen"
 #include "boundary_group.hpp"
 #include "container_typedef.hpp"
 #include "integral_group.hpp"
 #include "domain_group.hpp"
-#include "physicssteady_base.hpp"
+#include "physicstransient_base.hpp"
 #include "scalar_group.hpp"
 #include "variable_group.hpp"
 
-class PhysicsSteadyDiffusion : public PhysicsSteadyBase
+class PhysicsTransientDiffusion : public PhysicsTransientBase
 {
     /*
 
-    Single-component steady-state diffusion equation.    
+    Single-component transient diffusion equation.    
     
-    0 = -div(-b * grad(u)) + c
+    a * du/dt = -div(-b * grad(u)) + c
 
     Variables
     =========
@@ -27,12 +27,14 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     integral_group_in : IntegralGroup
         Test function integrals of the domains.
     value_group_in : VariableGroup
-        u in 0 = -div(-b * grad(u)) + c.
+        u in a * du/dt = -div(-b * grad(u)) + c.
         This will be solved for by the matrix equation.
+    derivativecoefficient_group_ptr : ScalarGroup
+        a in a * du/dt = -div(-b * grad(u)) + c.
     diffusioncoefficient_group_in : ScalarGroup
-        b in 0 = -div(-b * grad(u)) + c.
+        b in a * du/dt = -div(-b * grad(u)) + c.
     generationcoefficient_group_in : ScalarGroup
-        c in 0 = -div(-b * grad(u)) + c.
+        c in a * du/dt = -div(-b * grad(u)) + c.
 
     Functions
     =========
@@ -58,6 +60,7 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     BoundaryGroup *boundary_group_ptr;
     IntegralGroup *integral_group_ptr;
     VariableGroup *value_group_ptr;
+    ScalarGroup *derivativecoefficient_group_ptr;
     ScalarGroup *diffusioncoefficient_group_ptr;
     ScalarGroup *generationcoefficient_group_ptr;
 
@@ -69,7 +72,10 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     int start_row = -1;
 
     // functions
-    void matrix_fill(Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec);
+    void matrix_fill(
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+    );
     void set_start_row(int start_row_in);
     int get_start_row();
     BoundaryGroup* get_boundary_group_ptr();
@@ -77,13 +83,14 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     std::vector<VariableGroup*> get_variable_group_ptr_vec();
 
     // default constructor
-    PhysicsSteadyDiffusion() {}
+    PhysicsTransientDiffusion() {}
 
     // constructor
-    PhysicsSteadyDiffusion
+    PhysicsTransientDiffusion
     (
         DomainGroup &domain_group_in, BoundaryGroup &boundary_group_in, IntegralGroup &integral_group_in,
-        VariableGroup &value_group_in, ScalarGroup &diffusioncoefficient_group_in, ScalarGroup &generationcoefficient_group_in
+        VariableGroup &value_group_in,
+        ScalarGroup &derivativecoefficient_group_in, ScalarGroup &diffusioncoefficient_group_in, ScalarGroup &generationcoefficient_group_in
     )
     {
         
@@ -92,18 +99,20 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
         boundary_group_ptr = &boundary_group_in;
         integral_group_ptr = &integral_group_in;
         value_group_ptr = &value_group_in;
+        derivativecoefficient_group_ptr = &derivativecoefficient_group_in;
         diffusioncoefficient_group_ptr = &diffusioncoefficient_group_in;
         generationcoefficient_group_ptr = &generationcoefficient_group_in;
 
         // set boundary conditions
         boundary_group_ptr->set_boundary_type({0}, {1, 2});
 
-        // vector of scalar and variable groups 
-        scalar_group_ptr_vec = {diffusioncoefficient_group_ptr, generationcoefficient_group_ptr};
+        // vector of variable groups
+        scalar_group_ptr_vec = {derivativecoefficient_group_ptr, diffusioncoefficient_group_ptr, generationcoefficient_group_ptr};
         variable_group_ptr_vec = {value_group_ptr};
 
         // calculate integrals
         integral_group_ptr->evaluate_integral_div_Ni_dot_div_Nj();
+        integral_group_ptr->evaluate_integral_Ni_Nj();
         integral_group_ptr->evaluate_integral_Ni();
         integral_group_ptr->evaluate_integral_boundary_Ni();
         integral_group_ptr->evaluate_integral_boundary_Ni_Nj();
@@ -113,47 +122,58 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     private:
     void matrix_fill_domain
     (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         DomainLine2 *domain_ptr, IntegralLine2 *integral_ptr,
-        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
     void matrix_fill_natural
     (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr,  IntegralLine2 *integral_ptr,
-        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
     void matrix_fill_essential_clear
     (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr
     );
     void matrix_fill_essential
     (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
         DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr,  IntegralLine2 *integral_ptr,
-        ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+        ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
     );
 
 };
 
-void PhysicsSteadyDiffusion::matrix_fill
+void PhysicsTransientDiffusion::matrix_fill
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
 )
 {
     /*
 
-    Fill up the matrix equation Ax = b with entries as dictated by the physics. 
+    Fill up the matrix equation Ax(t+1) = Cx(t) + d with entries as dictated by the physics. 
 
     Arguments
     =========
     a_mat : Eigen::SparseMatrix<double>
-        A in Ax = b.
-    b_vec : Eigen::VectorXd
-        b in Ax = b.
+        A in Ax(t+1) = Cx(t) + d.
+    c_mat : Eigen::SparseMatrix<double>
+        C in Ax(t+1) = Cx(t) + d.
+    d_vec : Eigen::VectorXd
+        d in Ax(t+1) = Cx(t) + d.
     x_vec : Eigen::VectorXd
-        x in Ax = b.
+        x(t+1) in Ax(t+1) = Cx(t) + d.
+    x_last_timestep_vec : Eigen::VectorXd
+        x(t) in Ax(t+1) = Cx(t) + d.
+    dt : double
+        Length of the timestep.
 
     Returns
     =======
@@ -161,57 +181,32 @@ void PhysicsSteadyDiffusion::matrix_fill
 
     */
 
-   // iterate through each domain
-   for (int indx_d = 0; indx_d < domain_group_ptr->domain_l2_ptr_vec.size(); indx_d++)
-   {
+    // iterate through each domain
+    for (int indx_d = 0; indx_d < domain_group_ptr->domain_l2_ptr_vec.size(); indx_d++)
+    {
 
         // subset the domain and integrals
         DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_d];
         IntegralLine2 *integral_ptr = integral_group_ptr->integral_l2_ptr_vec[indx_d];
 
         // subset the scalars
+        ScalarLine2 *derivativecoefficient_ptr = derivativecoefficient_group_ptr->scalar_l2_ptr_vec[indx_d];
         ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_group_ptr->scalar_l2_ptr_vec[indx_d];
         ScalarLine2 *generationcoefficient_ptr = generationcoefficient_group_ptr->scalar_l2_ptr_vec[indx_d];
 
         // fill up matrix with domain equations
-        matrix_fill_domain(a_mat, b_vec, x_vec, domain_ptr, integral_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
+        matrix_fill_domain(
+            a_mat, c_mat, d_vec,
+            x_vec, x_last_timestep_vec, dt,
+            domain_ptr, integral_ptr,
+            derivativecoefficient_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr
+        );
 
-   }
+    }
 
-   // iterate through each natural boundary
-   for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
-   {
-
-        // subset the domain and integrals
-        DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_b];
-        BoundaryLine2 *boundary_ptr = boundary_group_ptr->boundary_l2_ptr_vec[indx_b];
-        IntegralLine2 *integral_ptr = integral_group_ptr->integral_l2_ptr_vec[indx_b];
-
-        // subset the scalars
-        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
-        ScalarLine2 *generationcoefficient_ptr = generationcoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
-
-        // fill up matrix with boundary conditions
-        matrix_fill_natural(a_mat, b_vec, x_vec, domain_ptr, boundary_ptr, integral_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
-
-   }
-
-   // clear equations with essential boundary conditions
-   for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
-   {
-
-        // subset the domain and integrals
-        DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_b];
-        BoundaryLine2 *boundary_ptr = boundary_group_ptr->boundary_l2_ptr_vec[indx_b];
-
-        // fill up matrix with boundary conditions
-        matrix_fill_essential_clear(a_mat, b_vec, x_vec, domain_ptr, boundary_ptr);
-
-   }
-
-   // iterate through each essential boundary
-   for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
-   {
+    // iterate through each natural boundary
+    for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
+    {
 
         // subset the domain and integrals
         DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_b];
@@ -219,21 +214,69 @@ void PhysicsSteadyDiffusion::matrix_fill
         IntegralLine2 *integral_ptr = integral_group_ptr->integral_l2_ptr_vec[indx_b];
 
         // subset the scalars
+        ScalarLine2 *derivativecoefficient_ptr = derivativecoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
         ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
         ScalarLine2 *generationcoefficient_ptr = generationcoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
 
         // fill up matrix with boundary conditions
-        matrix_fill_essential(a_mat, b_vec, x_vec, domain_ptr, boundary_ptr, integral_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
+        matrix_fill_natural(
+            a_mat, c_mat, d_vec,
+            x_vec, x_last_timestep_vec, dt,
+            domain_ptr, boundary_ptr, integral_ptr,
+            derivativecoefficient_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr
+        );
 
-   }
+    }
+
+    // clear equations with essential boundary conditions
+    for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
+    {
+
+        // subset the domain and integrals
+        DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_b];
+        BoundaryLine2 *boundary_ptr = boundary_group_ptr->boundary_l2_ptr_vec[indx_b];
+
+        // fill up matrix with boundary conditions
+        matrix_fill_essential_clear(
+            a_mat, c_mat, d_vec,
+            x_vec, x_last_timestep_vec, dt,
+            domain_ptr, boundary_ptr
+        );
+
+    }
+
+    // iterate through each essential boundary
+    for (int indx_b = 0; indx_b < boundary_group_ptr->boundary_l2_ptr_vec.size(); indx_b++)
+    {
+
+        // subset the domain and integrals
+        DomainLine2 *domain_ptr = domain_group_ptr->domain_l2_ptr_vec[indx_b];
+        BoundaryLine2 *boundary_ptr = boundary_group_ptr->boundary_l2_ptr_vec[indx_b];
+        IntegralLine2 *integral_ptr = integral_group_ptr->integral_l2_ptr_vec[indx_b];
+
+        // subset the scalars
+        ScalarLine2 *derivativecoefficient_ptr = derivativecoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
+        ScalarLine2 *diffusioncoefficient_ptr = diffusioncoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
+        ScalarLine2 *generationcoefficient_ptr = generationcoefficient_group_ptr->scalar_l2_ptr_vec[indx_b];
+
+        // fill up matrix with boundary conditions
+        matrix_fill_essential(
+            a_mat, c_mat, d_vec,
+            x_vec, x_last_timestep_vec, dt,
+            domain_ptr, boundary_ptr, integral_ptr,
+            derivativecoefficient_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr
+        );
+
+    }
 
 }
 
-void PhysicsSteadyDiffusion::matrix_fill_domain
+void PhysicsTransientDiffusion::matrix_fill_domain
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
     DomainLine2 *domain_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
@@ -246,6 +289,11 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
         int p1_pgid = domain_ptr->element_p1_pgid_vec[edid];
         int p0_pdid = domain_ptr->point_pgid_to_pdid_map[p0_pgid];
         int p1_pdid = domain_ptr->point_pgid_to_pdid_map[p1_pgid];
+
+        // get derivative coefficient of points around element
+        double dervcoeff_p0 = derivativecoefficient_ptr->point_value_vec[p0_pdid];
+        double dervcoeff_p1 = derivativecoefficient_ptr->point_value_vec[p1_pdid];
+        double dervcoeff_arr[2] = {dervcoeff_p0, dervcoeff_p1};
 
         // get diffusion coefficient of points around element
         double diffcoeff_p0 = diffusioncoefficient_ptr->point_value_vec[p0_pdid];
@@ -261,40 +309,45 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
         // matrix row = start_row of test function (physics) + group ID of variable
         // matrix column = start_column of variable + group ID of variable
 
-        // get group ID of value points
+        // get group ID of temperature points
         // used for getting matrix rows and columns
         int p0_pfid = value_group_ptr->point_pgid_to_pfid_map[p0_pgid];
         int p1_pfid = value_group_ptr->point_pgid_to_pfid_map[p1_pgid];
         int pfid_arr[2] = {p0_pfid, p1_pfid};
 
-        // calculate a_mat coefficients
+        // calculate a_mat and c_mat coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++){
         for (int indx_j = 0; indx_j < 2; indx_j++){
             int mat_row = start_row + pfid_arr[indx_i];
             int mat_col = value_group_ptr->start_col + pfid_arr[indx_j];
-            a_mat.coeffRef(mat_row, mat_col) += diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j];
+            a_mat.coeffRef(mat_row, mat_col) += (
+                (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[edid][indx_i][indx_j] +
+                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j]
+            );
+            c_mat.coeffRef(mat_row, mat_col) += (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[edid][indx_i][indx_j];
         }}
 
-        // calculate b_vec coefficients
+        // calculate d_vec coefficients
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + pfid_arr[indx_i];
-            b_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[edid][indx_i];
+            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[edid][indx_i];
         }
 
     }
 
 }
 
-void PhysicsSteadyDiffusion::matrix_fill_natural
+void PhysicsTransientDiffusion::matrix_fill_natural
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-    DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
+    DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr,  IntegralLine2 *integral_ptr,
+    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
-    // iterate for each natural boundary element
+    // iterate for each flux boundary element
     for (int bnid = 0; bnid < boundary_ptr->num_natural; bnid++)
     {
 
@@ -323,21 +376,22 @@ void PhysicsSteadyDiffusion::matrix_fill_natural
         switch (btid)
         {
             case 1:  // neumann
-                b_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
+                d_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
             break;
             case 2:  // robin
                 a_mat.coeffRef(mat_row_pa, mat_col_pa) += -parameter_vec[1] * integral_ptr->integral_boundary_Ni_Nj_vec[edid][boundary_key][pa_plid][pa_plid];
-                b_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
+                d_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
             break;
         }
-        
+
     }
 
 }
 
-void PhysicsSteadyDiffusion::matrix_fill_essential_clear
+void PhysicsTransientDiffusion::matrix_fill_essential_clear
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
     DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr
 )
 {
@@ -363,17 +417,19 @@ void PhysicsSteadyDiffusion::matrix_fill_essential_clear
         // erase row
         int mat_row_pa = start_row + pa_pfid;
         a_mat.row(mat_row_pa) *= 0.;
-        b_vec.coeffRef(mat_row_pa) = 0.;
+        c_mat.row(mat_row_pa) *= 0.;
+        d_vec.coeffRef(mat_row_pa) = 0.;
 
     }
 
 }
 
-void PhysicsSteadyDiffusion::matrix_fill_essential
+void PhysicsTransientDiffusion::matrix_fill_essential
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::VectorXd &b_vec, Eigen::VectorXd &x_vec,
-    DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr, IntegralLine2 *integral_ptr,
-    ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
+    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
+    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt,
+    DomainLine2 *domain_ptr, BoundaryLine2 *boundary_ptr,  IntegralLine2 *integral_ptr,
+    ScalarLine2 *derivativecoefficient_ptr, ScalarLine2 *diffusioncoefficient_ptr, ScalarLine2 *generationcoefficient_ptr
 )
 {
 
@@ -407,7 +463,7 @@ void PhysicsSteadyDiffusion::matrix_fill_essential
         {
             case 0:  // dirichlet
                 a_mat.coeffRef(mat_row_pa, mat_col_pa) += 1.;
-                b_vec.coeffRef(mat_row_pa) += parameter_vec[0];
+                d_vec.coeffRef(mat_row_pa) += parameter_vec[0];
             break;
         }
 
@@ -415,7 +471,7 @@ void PhysicsSteadyDiffusion::matrix_fill_essential
 
 }
 
-void PhysicsSteadyDiffusion::set_start_row(int start_row_in)
+void PhysicsTransientDiffusion::set_start_row(int start_row_in)
 {
     /*
 
@@ -431,12 +487,12 @@ void PhysicsSteadyDiffusion::set_start_row(int start_row_in)
     (none)
 
     */
-
+    
     start_row = start_row_in;
 
 }
 
-int PhysicsSteadyDiffusion::get_start_row()
+int PhysicsTransientDiffusion::get_start_row()
 {
     /*
 
@@ -457,7 +513,7 @@ int PhysicsSteadyDiffusion::get_start_row()
 
 }
 
-BoundaryGroup* PhysicsSteadyDiffusion::get_boundary_group_ptr()
+BoundaryGroup* PhysicsTransientDiffusion::get_boundary_group_ptr()
 {
     /*
 
@@ -478,7 +534,7 @@ BoundaryGroup* PhysicsSteadyDiffusion::get_boundary_group_ptr()
 
 }
 
-std::vector<ScalarGroup*> PhysicsSteadyDiffusion::get_scalar_group_ptr_vec()
+std::vector<ScalarGroup*> PhysicsTransientDiffusion::get_scalar_group_ptr_vec()
 {
     /*
 
@@ -499,7 +555,7 @@ std::vector<ScalarGroup*> PhysicsSteadyDiffusion::get_scalar_group_ptr_vec()
 
 }
 
-std::vector<VariableGroup*> PhysicsSteadyDiffusion::get_variable_group_ptr_vec()
+std::vector<VariableGroup*> PhysicsTransientDiffusion::get_variable_group_ptr_vec()
 {
     /*
 
