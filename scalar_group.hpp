@@ -35,7 +35,6 @@ class ScalarGroup
 
     // scalars and domains
     std::vector<ScalarLine2*> scalar_l2_ptr_vec;  // vector of scalars
-    std::unordered_map<DomainLine2*, ScalarLine2*> scalar_ptr_map;  // key: domain; value: scalar
 
     // functions
     void update_value();
@@ -49,12 +48,6 @@ class ScalarGroup
         
         // store vector of scalars
         scalar_l2_ptr_vec = scalar_l2_ptr_vec_in;
-
-        // map domain to scalars
-        for (auto scalar_ptr : scalar_l2_ptr_vec)
-        {
-            scalar_ptr_map[scalar_ptr->domain_ptr] = scalar_ptr;
-        }
 
         // get set of global IDs
         // map global IDs and group IDs
