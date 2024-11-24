@@ -390,11 +390,11 @@ void PhysicsTransientConvectionDiffusion::matrix_fill_natural
         switch (btid)
         {
             case 1:  // neumann
-                d_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
+                d_vec.coeffRef(mat_row_pa) += parameter_vec[0];  // * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
             break;
             case 2:  // robin
-                a_mat.coeffRef(mat_row_pa, mat_col_pa) += -parameter_vec[1] * integral_ptr->integral_boundary_Ni_Nj_vec[edid][boundary_key][pa_plid][pa_plid];
-                d_vec.coeffRef(mat_row_pa) += parameter_vec[0] * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
+                a_mat.coeffRef(mat_row_pa, mat_col_pa) += -parameter_vec[1];  // * integral_ptr->integral_boundary_Ni_Nj_vec[edid][boundary_key][pa_plid][...];
+                d_vec.coeffRef(mat_row_pa) += parameter_vec[0];  // * integral_ptr->integral_boundary_Ni_vec[edid][boundary_key][pa_plid];
             break;
         }
 
