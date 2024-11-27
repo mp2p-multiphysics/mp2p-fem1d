@@ -14,8 +14,8 @@ class VariableLine2
     Variables
     =========
     domain_in : DomainLine2
-        Domain where variable value is applied.
-    u_init_in : double
+        Domain where variable is applied.
+    value_initial_in : double
         Initial value of the variable.
 
     Functions
@@ -42,7 +42,7 @@ class VariableLine2
     VariableLine2() {}
 
     // constructor
-    VariableLine2(DomainLine2 &domain_in, double u_init_in)
+    VariableLine2(DomainLine2 &domain_in, double value_initial_in)
     {
 
         // store domain
@@ -54,7 +54,7 @@ class VariableLine2
         // populate value vector with initial values
         for (int pdid = 0; pdid < num_point; pdid++)
         {
-            point_value_vec.push_back(u_init_in);
+            point_value_vec.push_back(value_initial_in);
         }
 
     }

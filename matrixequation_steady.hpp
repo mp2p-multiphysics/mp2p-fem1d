@@ -15,7 +15,7 @@ class MatrixEquationSteady
     Variables
     =========
     physics_ptr_vec_in : vector<PhysicsSteadyBase*>
-        vector with steady-state physics classes.
+        vector with pointers to PhysicsSteadyBase objects.
 
     Functions
     =========

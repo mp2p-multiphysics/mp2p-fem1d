@@ -23,11 +23,11 @@ class PhysicsTransientBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_boundary_group_ptr_vec() : vector<BoundaryGroup*>
+    get_boundary_group_ptr_vec : vector<BoundaryGroup*>
         Returns the vector containing pointers to BoundaryGroup objects tied to this physics.
-    get_scalar_group_ptr_vec() : vector<ScalarGroup*>
+    get_scalar_group_ptr_vec : vector<ScalarGroup*>
         Returns the vector containing pointers to ScalarGroup objects tied to this physics.
-    get_variable_group_ptr_vec() : vector<VariableGroup*>
+    get_variable_group_ptr_vec : vector<VariableGroup*>
         Returns the vector containing pointers to VariableGroup objects tied to this physics.
 
     */

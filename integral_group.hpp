@@ -7,18 +7,18 @@ class IntegralGroup
 {
     /*
 
-    Groups test function integrals (N) that are used in the same physics.
+    Groups test function (N) integrals that are used in the same physics.
 
     Variables
     =========
     integral_l2_ptr_vec_in : vector<IntegralLine2*>
-        vector with pointers to BoundaryLine2 objects.
+        vector with pointers to IntegralLine2 objects.
 
     Functions
     =========
-    evaluate_Ni_derivative : void
-        Calculates test functions (N) and their derivatives.
-        Must be called before integrals are evaluated.
+    evaluate_Ni : void
+        Calculates test function values and other properties.
+        Must be called before domain integrals are evaluated.
     evaluate_integral_Ni : void
         Calculates the integral of Ni.
     evaluate_integral_derivative_Ni_x : void
@@ -31,9 +31,15 @@ class IntegralGroup
         Calculates the integral of div(Ni) dot div(Nj).
     evaluate_integral_Ni_Nj_derivative_Nk_x : void
         Calculates the integral of Ni * Nj * d(Nk)/dx.
+    evaluate_boundary_Ni : void
+        Calculates test functions values and other properties at the boundary.
+        Must be called before boundary integrals are evaluated.
+    evaluate_integral_boundary_Ni : void
+        Calculates the integral of Ni at the boundary.
+    evaluate_integral_boundary_Ni_Nj : void
+        Calculates the integral of Ni * Nj at the boundary.
 
     */
-
 
     public:
 
@@ -69,8 +75,8 @@ void IntegralGroup::evaluate_Ni()
 {
     /*
 
-    Calculates test functions (N) and their derivatives.
-    Must be called before integrals are evaluated.
+    Calculates test function values and other properties.
+    Must be called before domain integrals are evaluated.
 
     Arguments
     =========
@@ -236,6 +242,20 @@ void IntegralGroup::evaluate_integral_Ni_Nj_derivative_Nk_x()
 
 void IntegralGroup::evaluate_boundary_Ni()
 {
+    /*
+
+    Calculates test function values and other properties at the boundary.
+    Must be called before bounary integrals are evaluated.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // evaluate integrals in each domain
     for (auto integral_ptr : integral_l2_ptr_vec)
@@ -247,6 +267,19 @@ void IntegralGroup::evaluate_boundary_Ni()
 
 void IntegralGroup::evaluate_integral_boundary_Ni()
 {
+    /*
+
+    Calculates the integral of Ni at the boundary.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // evaluate integrals in each domain
     for (auto integral_ptr : integral_l2_ptr_vec)
@@ -258,6 +291,19 @@ void IntegralGroup::evaluate_integral_boundary_Ni()
 
 void IntegralGroup::evaluate_integral_boundary_Ni_Nj()
 {
+    /*
+
+    Calculates the integral of Ni * Nj at the boundary.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // evaluate integrals in each domain
     for (auto integral_ptr : integral_l2_ptr_vec)

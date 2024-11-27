@@ -13,9 +13,9 @@ class DomainLine2
 
     Variables
     =========
-    file_in_point_str : string
+    file_in_point_str_in : string
         Path to CSV file with data for domain points.
-    file_in_element_str : string
+    file_in_element_str_in : string
         Path to CSV file with data for domain elements.
 
     Notes

@@ -16,8 +16,10 @@ class BoundaryGroup
     
     Functions
     =========
+    set_boundary_type : void
+        Classifies BCs as essential or natural.
     update_parameter : void
-        Recalculates non-constant boundary condition parameters.
+        Recalculates non-constant BC parameters.
 
     */
 
@@ -44,6 +46,22 @@ class BoundaryGroup
 
 void BoundaryGroup::set_boundary_type(VectorInt boundarytype_essential_vec, VectorInt boundarytype_natural_vec)
 {
+    /*
+
+    Classifies BCs as essential or natural.
+
+    Arguments
+    =========
+    boundarytype_essential_vec : VectorInt
+        vector with BC type IDs that denote essential BCs.
+    boundarytype_essential_vec : VectorInt
+        vector with BC type IDs that denote natural BCs.
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through each boundary
     for (auto boundary_ptr : boundary_l2_ptr_vec)
@@ -57,7 +75,7 @@ void BoundaryGroup::update_parameter()
 {
     /*
 
-    Recalculates non-constant boundary condition parameters.
+    Recalculates non-constant BC parameters.
 
     Arguments
     =========

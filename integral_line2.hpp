@@ -10,18 +10,20 @@ class IntegralLine2
 {
     /*
 
-    Test function (N) integrals for line2 domain elements.
+    Test function (N) integrals for line2 elements.
 
     Variables
     =========
     domain_in : DomainLine2
-        struct with domain data.
+        Domain where element integrals are calculated.
+    boundary_in : BoundaryLine2
+        Boundaries where element integrals are calculated.
 
     Functions
     =========
-    evaluate_Ni_derivative : void
-        Calculates test functions and their derivatives.
-        Must be called before integrals are evaluated.
+    evaluate_Ni : void
+        Calculates test function values and other properties.
+        Must be called before domain integrals are evaluated.
     evaluate_integral_Ni : void
         Calculates the integral of Ni.
     evaluate_integral_derivative_Ni_x : void
@@ -34,13 +36,24 @@ class IntegralLine2
         Calculates the integral of div(Ni) dot div(Nj).
     evaluate_integral_Ni_Nj_derivative_Nk_x : void
         Calculates the integral of Ni * Nj * d(Nk)/dx.
+    evaluate_boundary_Ni : void
+        Calculates test functions values and other properties at the boundary.
+        Must be called before boundary integrals are evaluated.
+    evaluate_integral_boundary_Ni : void
+        Calculates the integral of Ni at the boundary.
+    evaluate_integral_boundary_Ni_Nj : void
+        Calculates the integral of Ni * Nj at the boundary.
 
     Notes
     ====
-    The calculated integrals are stored in nested vectors.
-    Values can be accessed from each vector using the following pattern:
+    The calculated integrals are stored in nested maps and vectors.
+    Values of the domain integrals can be accessed from each vector using the following pattern:
         integral_vec[edid][i][j]...
-    wherein edid is the domain element ID and i, j, ... are indices.
+        wherein edid is the domain element ID and i, j, ... are indices.
+    Values of the boundary integrals can be accessed from each vector using the following pattern:
+        integral_vec[edid][boundary_key][i][j]...
+        wherein boundary_key is an int denoting the location of the boundary.
+        For line2 elements, the boundary_key is just the local ID of the point (0 or 1).
 
     */
 
@@ -70,7 +83,7 @@ class IntegralLine2
     MapVector3D boundary_Ni_vec;
     MapVector2D boundary_normal_x_vec;
 
-    // vectors with bounary integrals
+    // vectors with boundary integrals
     // index as follows: [edid][boundary_key][i][j]
     MapVector3D integral_boundary_Ni_vec;
     MapVector4D integral_boundary_Ni_Nj_vec;
@@ -112,7 +125,7 @@ void IntegralLine2::evaluate_Ni()
 {
     /*
 
-    Calculates test functions (N) and their derivatives.
+    Calculates test function values and other properties.
     Must be called before integrals are evaluated.
 
     Arguments
@@ -210,57 +223,6 @@ void IntegralLine2::evaluate_Ni()
         Ni_vec.push_back(N_part_ml_vec);
         derivative_Ni_x_vec.push_back(derivative_N_x_part_ml_vec);
         
-    }
-
-}
-
-void IntegralLine2::evaluate_boundary_Ni()
-{
-
-    // iterate through each boundary
-    for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
-    {
-
-        // get the element ID
-        int egid = boundary_ptr->boundary_egid_vec[bid];
-        int edid = domain_ptr->element_egid_to_edid_map[egid];
-
-        // get boundary key
-        // for 1D elements, just use the local point
-        int boundary_key = boundary_ptr->boundary_pa_plid_vec[bid];
-
-        // get dimensionless coordinates
-        double a = 0;
-        switch (boundary_key)
-        {
-            case 0: a = -1.; break;
-            case 1: a = +1.; break;
-        }
-
-        // calculate normal vectors
-        double normal_x = 0;
-        switch (boundary_key)
-        {
-            case 0: normal_x = -1.; break;
-            case 1: normal_x = +1.; break;
-        }
-        boundary_normal_x_vec[edid][boundary_key] = normal_x;
-
-        // calculate test function values
-        for (int indx_i = 0; indx_i < 2; indx_i++)
-        {
-
-            // get test function N
-            double N = 0.;
-            switch (indx_i)
-            {
-                case 0: N = 0.5*(1 - a); break;
-                case 1: N = 0.5*(1 + a); break;
-            }
-            boundary_Ni_vec[edid][boundary_key].push_back(N);
-
-        }
-
     }
 
 }
@@ -513,8 +475,86 @@ void IntegralLine2::evaluate_integral_Ni_Nj_derivative_Nk_x()
 
 }
 
+void IntegralLine2::evaluate_boundary_Ni()
+{
+    /*
+
+    Calculates test function values and other properties at the boundary.
+    Must be called before bounary integrals are evaluated.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
+
+    // iterate through each boundary
+    for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
+    {
+
+        // get the element ID
+        int egid = boundary_ptr->boundary_egid_vec[bid];
+        int edid = domain_ptr->element_egid_to_edid_map[egid];
+
+        // get boundary key
+        // for 1D elements, just use the local point
+        int boundary_key = boundary_ptr->boundary_pa_plid_vec[bid];
+
+        // get dimensionless coordinates
+        double a = 0;
+        switch (boundary_key)
+        {
+            case 0: a = -1.; break;
+            case 1: a = +1.; break;
+        }
+
+        // calculate normal vectors
+        double normal_x = 0;
+        switch (boundary_key)
+        {
+            case 0: normal_x = -1.; break;
+            case 1: normal_x = +1.; break;
+        }
+        boundary_normal_x_vec[edid][boundary_key] = normal_x;
+
+        // calculate test function values
+        for (int indx_i = 0; indx_i < 2; indx_i++)
+        {
+
+            // get test function N
+            double N = 0.;
+            switch (indx_i)
+            {
+                case 0: N = 0.5*(1 - a); break;
+                case 1: N = 0.5*(1 + a); break;
+            }
+            boundary_Ni_vec[edid][boundary_key].push_back(N);
+
+        }
+
+    }
+
+}
+
 void IntegralLine2::evaluate_integral_boundary_Ni()
 {
+    /*
+
+    Calculates the integral of Ni at the boundary.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // iterate through each boundary
     for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)
@@ -545,6 +585,19 @@ void IntegralLine2::evaluate_integral_boundary_Ni()
 
 void IntegralLine2::evaluate_integral_boundary_Ni_Nj()
 {
+    /*
+
+    Calculates the integral of Ni * Nj at the boundary.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =========
+    (none)
+
+    */
 
     // iterate through each boundary
     for (int bid = 0; bid < boundary_ptr->num_boundary; bid++)

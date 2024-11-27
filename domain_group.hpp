@@ -7,7 +7,7 @@ class DomainGroup
 {
     /*
 
-    Groups domain domains that are used in the same physics.
+    Groups domains that are used in the same physics.
 
     Variables
     =========

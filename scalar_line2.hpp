@@ -13,19 +13,34 @@ class ScalarLine2
 
     Scalar applied over line2 domain elements.
 
-    Variables
+    Variables (for constant values)
     =========
     domain_in : DomainLine2
         Domain where scalar value is applied.
-    u_init_in : double
-        Initial value of the scalar.
+    value_constant_in : double
+        Value of the scalar.
+
+    Variables (for non-constant values)
+    =========
+    domain_in : DomainLine2
+        Domain where scalar value is applied.
+    value_function_in : function(double, VectorDouble) -> double
+        Function used to compute scalar values based on variable values.
+    variable_ptr_vec_in : vector<VariableLine2*>
+        vector of pointers to variable objects needed to compute scalar values.
 
     Functions
     =========
     output_csv : void
         Outputs a CSV file with the values of the scalar.
-    update_parameter : void
-        Recalculates non-constant boundary condition parameters.
+    update_value : void
+        Recalculates non-constant values.
+
+    Notes
+    ====
+    The inputs to the value function are the x-coordinate (double) and vector of variable values (VectorDouble) at a specified point.
+        The variable values are in the same order as the variables in variable_ptr_vec.
+    The output of the value function is the value of the scalar.
 
     */
 

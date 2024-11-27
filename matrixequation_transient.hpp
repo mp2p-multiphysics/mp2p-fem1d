@@ -15,7 +15,7 @@ class MatrixEquationTransient
     Variables
     =========
     physics_ptr_vec_in : vector<PhysicsTransientBase*>
-        vector with transient physics classes.
+        vector with pointers to PhysicsTransientBase objects.
 
     Functions
     =========

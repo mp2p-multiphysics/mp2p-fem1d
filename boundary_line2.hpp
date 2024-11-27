@@ -16,28 +16,26 @@ class BoundaryLine2
 
     Variables
     =========
-    file_in_natural_str_in : string
-        Path to CSV file with data for natural BCs.
-    file_in_essential_str_in : string
-        Path to CSV file with data for essential BCs.
+    domain_in : DomainLine2
+        Domain where boundary conditions are applied.
+    file_in_str_in : string
+        Path to CSV file with data for BCs.
 
     Functions
     =========
-    set_boundarycondition : void
-        Assigns a BC type and parameters to a BC configuration ID.
-    set_boundarycondition_parameter : void
-        Assigns or modifies the parameters to a BC.
+    set_boundary : void
+        Assigns a BC type ID and parameters to a BC configuration ID.
+    set_boundary_type : void
+        Classifies BCs as essential or natural.
     update_parameter : void
-        Recalculates non-constant boundary condition parameters.
+        Recalculates non-constant BC parameters.
 
     Notes
     ====
-    Both CSV files must have the following columns:
+    The input CSV file must have the following columns:
         global element ID where BC is applied
         local point ID where BC is applied (0 or 1)
         BC configuration ID
-    natural BCs add additional terms to the linearized equations (e.g., Neumann, Robin)
-    essential BCs completely replace the linearized equations (e.g., Dirichlet)
 
     */
 
@@ -99,11 +97,11 @@ class BoundaryLine2
     BoundaryLine2() {}
 
     // constructor
-    BoundaryLine2(DomainLine2 &mesh_in, std::string file_in_str_in)
+    BoundaryLine2(DomainLine2 &domain_in, std::string file_in_str_in)
     {
 
         // store variables
-        domain_ptr = &mesh_in;
+        domain_ptr = &domain_in;
         file_in_str = file_in_str_in;
 
         // read input files and store boundary condition data
@@ -120,16 +118,16 @@ void BoundaryLine2::set_boundary(int boundaryconfig_id, int boundarytype_id, Vec
 {
     /*
 
-    Assigns a BC type and parameters to a BC configuration ID.
+    Assigns a BC type ID and parameters to a BC configuration ID.
 
     Arguments
     =========
     boundaryconfig_id : int
         BC configuration ID.
-    type_str : string
-        Type of boundary condition.
+    boundarytype_id : int
+        BC type ID assigned to BC configuration ID.
     parameter_vec : VectorDouble
-        vector with parameters for the BC.
+        Parameters assigned to BC configuration ID.
 
     Returns
     =======
@@ -137,8 +135,9 @@ void BoundaryLine2::set_boundary(int boundaryconfig_id, int boundarytype_id, Vec
 
     Notes
     ====
-    type_str can be "neumann" or "robin" if boundaryconfig_id refers to natural BCs.
-    type_str can be "dirichlet" if boundaryconfig_id refers to essential BCs.
+    The BC configuration ID indicates the location of the BC.
+    The BC type ID denotes the type of BC (e.g., Dirichlet, Neumann, etc.).
+        The int corresponding to each BC type depends on the physics.
 
     */
 
@@ -167,18 +166,18 @@ void BoundaryLine2::set_boundary(int boundaryconfig_id, int boundarytype_id, std
 {
     /*
 
-    Assigns a BC type and parameters to a BC configuration ID.
+    Assigns a BC type ID and parameters to a BC configuration ID.
 
     Arguments
     =========
     boundaryconfig_id : int
         BC configuration ID.
-    type_str : string
-        Type of boundary condition.
-    parameter_function : function<VectorDouble<double, VectorDouble>>
-        Function that calculates non-constant boundary condition parameters.
+    boundarytype_id : int
+        BC type ID assigned to BC configuration ID.
+    parameter_function : function<double, VectorDouble> -> VectorDouble
+        Function used to compute parameter values based on variable values.
     variable_ptr_vec : vector<VariableLine2*>
-        vector of variables that affects non-constant boundary condition parameters.
+        vector of pointers to variable objects needed to compute parameter values.
 
     Returns
     =======
@@ -186,10 +185,12 @@ void BoundaryLine2::set_boundary(int boundaryconfig_id, int boundarytype_id, std
 
     Notes
     ====
-    type_str can be "neumann" or "robin" if boundaryconfig_id refers to natural BCs.
-    type_str can be "dirichlet" if boundaryconfig_id refers to essential BCs.
-    parameter_function accepts the x-coordinate and a vector of variable essentials as input.
-    parameter_function returns the vector of parameters needed by the boundary condition.
+    The BC configuration ID indicates the location of the BC.
+    The BC type ID denotes the type of BC (e.g., Dirichlet, Neumann, etc.).
+        The int corresponding to each BC type depends on the physics.
+    The inputs to the parameter function are the x-coordinate (double) and vector of variable values (VectorDouble) at a specified point.
+        The variable values are in the same order as the variables in variable_ptr_vec.
+    The output of the parameter function is the vector of parameter values (VectorDouble).
 
     */
 
@@ -217,6 +218,22 @@ void BoundaryLine2::set_boundary(int boundaryconfig_id, int boundarytype_id, std
 
 void BoundaryLine2::set_boundary_type(VectorInt boundarytype_essential_vec, VectorInt boundarytype_natural_vec)
 {
+    /*
+
+    Classifies BCs as essential or natural.
+
+    Arguments
+    =========
+    boundarytype_essential_vec : VectorInt
+        vector with BC type IDs that denote essential BCs.
+    boundarytype_essential_vec : VectorInt
+        vector with BC type IDs that denote natural BCs.
+
+    Returns
+    =======
+    (none)
+
+    */
 
     // iterate through boundaries
     for (int bid = 0; bid < num_boundary; bid++)
@@ -257,7 +274,7 @@ void BoundaryLine2::update_parameter()
 {
     /*
 
-    Recalculates non-constant boundary condition parameters.
+    Recalculates non-constant BC parameters.
 
     Arguments
     =========

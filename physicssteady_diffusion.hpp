@@ -21,11 +21,11 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     Variables
     =========
     domain_group_in : DomainGroup
-        Domaines where this physics is applied to.
+        Domains where this physics is applied to.
     boundary_group_in : BoundaryGroup
-        Boundary conditions pertinent to this physics.
+        Boundaries where this physics is applied to.
     integral_group_in : IntegralGroup
-        Test function integrals of the domains.
+        Test function integrals that this physics uses.
     value_group_in : VariableGroup
         u in 0 = -div(-b * grad(u)) + c.
         This will be solved for by the matrix equation.
@@ -42,11 +42,11 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_boundary_group_ptr_vec() : vector<BoundaryGroup*>
+    get_boundary_group_ptr_vec : vector<BoundaryGroup*>
         Returns the vector containing pointers to BoundaryGroup objects tied to this physics.
-    get_scalar_group_ptr_vec() : vector<ScalarGroup*>
+    get_scalar_group_ptr_vec : vector<ScalarGroup*>
         Returns the vector containing pointers to ScalarGroup objects tied to this physics.
-    get_variable_group_ptr_vec() : vector<VariableGroup*>
+    get_variable_group_ptr_vec : vector<VariableGroup*>
         Returns the vector containing pointers to VariableGroup objects tied to this physics.
 
     */
