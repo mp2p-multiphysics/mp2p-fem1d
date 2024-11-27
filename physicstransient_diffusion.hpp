@@ -10,6 +10,9 @@
 #include "scalar_group.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class PhysicsTransientDiffusion : public PhysicsTransientBase
 {
     /*
@@ -573,6 +576,8 @@ std::vector<VariableGroup*> PhysicsTransientDiffusion::get_variable_group_ptr_ve
     */
     
     return variable_group_ptr_vec;
+
+}
 
 }
 

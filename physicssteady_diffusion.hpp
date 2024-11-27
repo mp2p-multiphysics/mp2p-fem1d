@@ -10,6 +10,9 @@
 #include "scalar_group.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 {
     /*
@@ -517,6 +520,8 @@ std::vector<VariableGroup*> PhysicsSteadyDiffusion::get_variable_group_ptr_vec()
     */
     
     return variable_group_ptr_vec;
+
+}
 
 }
 

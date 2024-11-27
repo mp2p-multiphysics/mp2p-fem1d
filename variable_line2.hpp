@@ -5,6 +5,9 @@
 #include "domain_line2.hpp"
 #include "container_typedef.hpp"
 
+namespace FEM1D
+{
+
 class VariableLine2
 {
     /*
@@ -149,6 +152,8 @@ void VariableLine2::output_csv(std::string file_out_base_str, int ts)
         file_out_stream << domain_ptr->point_position_x_vec[pdid] << ",";
         file_out_stream << point_value_vec[pdid] << "\n";
     }
+
+}
 
 }
 

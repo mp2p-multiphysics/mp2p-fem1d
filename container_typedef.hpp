@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include <vector>
 
+namespace FEM1D
+{
+
 // typedef of vectors of numbers
 typedef std::vector<double> VectorDouble;
 typedef std::vector<int> VectorInt;
@@ -20,5 +23,7 @@ typedef std::vector<Vector3D> Vector4D;
 typedef std::unordered_map<int, std::unordered_map<int, double>> MapVector2D;
 typedef std::unordered_map<int, std::unordered_map<int, Vector1D>> MapVector3D;
 typedef std::unordered_map<int, std::unordered_map<int, Vector2D>> MapVector4D;
+
+}
 
 #endif

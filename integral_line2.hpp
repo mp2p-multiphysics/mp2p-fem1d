@@ -6,6 +6,9 @@
 #include "container_typedef.hpp"
 #include "domain_line2.hpp"
 
+namespace FEM1D
+{
+
 class IntegralLine2
 {
     /*
@@ -627,6 +630,8 @@ void IntegralLine2::evaluate_integral_boundary_Ni_Nj()
         integral_boundary_Ni_Nj_vec[edid][boundary_key] = integral_part_i_vec;
 
     }
+
+}
 
 }
 

@@ -8,6 +8,9 @@
 #include "container_typedef.hpp"
 #include "variable_line2.hpp"
 
+namespace FEM1D
+{
+
 class BoundaryLine2
 {
     /*
@@ -430,6 +433,8 @@ void BoundaryLine2::read_boundary(std::string file_in_str)
     // fill up vectors with preliminary values
     boundary_btid_vec = VectorInt(num_boundary, 0);
     boundary_parameter_vec = Vector2D(num_boundary, Vector1D{});
+
+}
 
 }
 

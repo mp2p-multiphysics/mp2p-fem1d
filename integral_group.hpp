@@ -3,6 +3,9 @@
 #include <vector>
 #include "integral_line2.hpp"
 
+namespace FEM1D
+{
+
 class IntegralGroup
 {
     /*
@@ -310,6 +313,8 @@ void IntegralGroup::evaluate_integral_boundary_Ni_Nj()
     {
         integral_ptr->evaluate_integral_boundary_Ni_Nj();
     }
+
+}
 
 }
 

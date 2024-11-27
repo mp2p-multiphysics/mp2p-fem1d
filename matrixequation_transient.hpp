@@ -6,6 +6,9 @@
 #include "physicstransient_base.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class MatrixEquationTransient
 {
     /*
@@ -301,6 +304,8 @@ void MatrixEquationTransient::store_solution()
         }
 
     }
+
+}
 
 }
 

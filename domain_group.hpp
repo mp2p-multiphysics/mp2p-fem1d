@@ -3,6 +3,9 @@
 #include <vector>
 #include "domain_line2.hpp"
 
+namespace FEM1D
+{
+
 class DomainGroup
 {
     /*
@@ -34,5 +37,7 @@ class DomainGroup
     }
 
 };
+
+}
 
 #endif

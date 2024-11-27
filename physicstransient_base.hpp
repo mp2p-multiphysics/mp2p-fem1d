@@ -9,6 +9,9 @@
 #include "integral_group.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class PhysicsTransientBase
 {
     /*
@@ -201,6 +204,8 @@ std::vector<VariableGroup*> PhysicsTransientBase::get_variable_group_ptr_vec()
     */
 
     return variable_group_ptr_vec;
+
+}
 
 }
 

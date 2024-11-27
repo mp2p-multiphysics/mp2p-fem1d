@@ -6,6 +6,9 @@
 #include "domain_line2.hpp"
 #include "scalar_line2.hpp"
 
+namespace FEM1D
+{
+
 class ScalarGroup
 {
     /*
@@ -112,6 +115,8 @@ void ScalarGroup::update_value()
     {
         scalar_ptr->update_value();
     }
+
+}
 
 }
 

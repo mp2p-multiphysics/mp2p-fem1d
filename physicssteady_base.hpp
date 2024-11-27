@@ -9,6 +9,9 @@
 #include "integral_group.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class PhysicsSteadyBase
 {
     /*
@@ -184,6 +187,8 @@ std::vector<VariableGroup*> PhysicsSteadyBase::get_variable_group_ptr_vec()
     */
     
     return variable_group_ptr_vec;
+
+}
 
 }
 

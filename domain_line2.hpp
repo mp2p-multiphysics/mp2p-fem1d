@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include "container_typedef.hpp"
 
+namespace FEM1D
+{
+
 class DomainLine2
 {
     /*
@@ -199,6 +202,8 @@ void DomainLine2::read_domain_element(std::string file_in_element_str)
         int egid = element_edid_to_egid_vec[edid];
         element_egid_to_edid_map[egid] = edid;
     }
+
+}
 
 }
 

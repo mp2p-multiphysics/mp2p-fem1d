@@ -7,6 +7,9 @@
 #include "domain_line2.hpp"
 #include "variable_line2.hpp"
 
+namespace FEM1D
+{
+
 class ScalarLine2
 {
     /*
@@ -233,6 +236,8 @@ void ScalarLine2::update_value()
         point_value_vec[pdid] = value_function(position_x, value_vec);
 
     }
+
+}
 
 }
 

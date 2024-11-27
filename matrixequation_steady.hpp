@@ -6,6 +6,9 @@
 #include "physicssteady_base.hpp"
 #include "variable_group.hpp"
 
+namespace FEM1D
+{
+
 class MatrixEquationSteady
 {
     /*
@@ -265,6 +268,8 @@ void MatrixEquationSteady::store_solution()
         }
 
     }
+
+}
 
 }
 

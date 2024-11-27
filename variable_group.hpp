@@ -5,6 +5,9 @@
 #include <vector>
 #include "variable_line2.hpp"
 
+namespace FEM1D
+{
+
 class VariableGroup
 {
     /*
@@ -93,5 +96,7 @@ class VariableGroup
     }
 
 };
+
+}
 
 #endif

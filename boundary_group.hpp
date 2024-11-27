@@ -3,6 +3,9 @@
 #include <vector>
 #include "boundary_line2.hpp"
 
+namespace FEM1D
+{
+
 class BoundaryGroup
 {
     /*
@@ -92,6 +95,8 @@ void BoundaryGroup::update_parameter()
     {
         boundary_ptr->update_parameter();
     }
+
+}
 
 }
 
