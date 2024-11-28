@@ -69,8 +69,6 @@ class VariableLine2
         }
 
     }
-
-    private:
     
 };
 
@@ -143,7 +141,7 @@ void VariableLine2::output_csv()
     std::ofstream file_out_stream(file_out_base_str);
 
     // write to file
-    file_out_stream << "gid,position_x,value\n";
+    file_out_stream << "point_id,position_x,value\n";
     for (int pdid = 0; pdid < num_point; pdid++)
     {
         file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
@@ -193,7 +191,7 @@ void VariableLine2::output_csv(int ts)
     std::ofstream file_out_stream(file_out_str);
 
     // write to file
-    file_out_stream << "gid,position_x,value\n";
+    file_out_stream << "point_id,position_x,value\n";
     for (int pdid = 0; pdid < num_point; pdid++)
     {
         file_out_stream << domain_ptr->point_pdid_to_pgid_vec[pdid] << ",";
