@@ -3,6 +3,7 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include "container_typedef.hpp"
 #include "variable_line2.hpp"
 
 namespace FEM1D
@@ -19,6 +20,11 @@ class VariableGroup
     variable_l2_ptr_vec_in : vector<VariableLine2*>
         vector with pointers to VariableLine2 objects.
     
+    Functions
+    =========
+    output_csv : void
+        Outputs a CSV file with the values of the variable.
+
     */
 
     public:
@@ -27,15 +33,18 @@ class VariableGroup
     int num_point = 0;
 
     // point IDs
-    VectorInt point_pgid_vec;  // key: group ID; value: global ID
+    VectorInt point_pfid_to_pgid_vec;  // key: group ID; value: global ID
     MapIntInt point_pgid_to_pfid_map;  // key: global ID; value: group ID
 
     // variables and domains
     std::vector<VariableLine2*> variable_l2_ptr_vec;  // vector of variables
-    std::unordered_map<DomainLine2*, VariableLine2*> domain_to_variable_ptr_map;  // key: domain; value: variable
-   
+
     // starting column of variables in matrix equation
     int start_col = -1;
+
+    // functions
+    void output_csv();
+    void output_csv(int ts);
 
     // default constructor
     VariableGroup() {}
@@ -46,12 +55,6 @@ class VariableGroup
         
         // store vector of variables
         variable_l2_ptr_vec = variable_l2_ptr_vec_in;
-
-        // map domain to variables
-        for (auto variable_ptr : variable_l2_ptr_vec)
-        {
-            domain_to_variable_ptr_map[variable_ptr->domain_ptr] = variable_ptr;
-        }
 
         // get set of global IDs
         // map global IDs and group IDs
@@ -83,7 +86,7 @@ class VariableGroup
 
             // map global ID to group ID and vice versa
             point_pgid_to_pfid_map[pgid] = pfid;
-            point_pgid_vec.push_back(pgid);
+            point_pfid_to_pgid_vec.push_back(pgid);
             
             // increment group ID
             pfid++;
@@ -96,6 +99,55 @@ class VariableGroup
     }
 
 };
+
+void VariableGroup::output_csv()
+{
+    /*
+
+    Outputs a CSV file with the values of the variable.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // iterate through each variable
+    for (auto variable_ptr : variable_l2_ptr_vec)
+    {
+        variable_ptr->output_csv();
+    }
+
+}
+
+void VariableGroup::output_csv(int ts)
+{
+    /*
+
+    Outputs a CSV file with the values of the variable.
+
+    Arguments
+    =========
+    ts : int
+        Timestep number.
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // iterate through each variable
+    for (auto variable_ptr : variable_l2_ptr_vec)
+    {
+        variable_ptr->output_csv(ts);
+    }
+
+}
 
 }
 

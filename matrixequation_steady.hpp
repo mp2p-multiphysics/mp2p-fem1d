@@ -1,5 +1,7 @@
 #ifndef MATRIXEQUATION_STEADY
 #define MATRIXEQUATION_STEADY
+#include <iostream>
+#include <limits>
 #include <set>
 #include <vector>
 #include "Eigen/Eigen"
@@ -22,11 +24,10 @@ class MatrixEquationSteady
 
     Functions
     =========
-    iterate_solution : void
-        Solves for x in Ax = b.
-        Uses the currently stored values in A and b.
-    store_solution : void
-        Transfers the solutions in x into variable objects.
+    set_iteration : void
+        Set parameters needed for iterations when solving the matrix equation.
+    solve : void
+        Solves the matrix equation.
 
     Notes
     =====
@@ -48,9 +49,13 @@ class MatrixEquationSteady
     Eigen::VectorXd x_vec;
     int num_equation = 0;
 
-    // functions
-    void iterate_solution();
-    void store_solution();
+    // settings for iteration
+    int num_iteration_max = 0;
+    double residual_tol = 0.;
+
+    // function
+    void set_iteration(int num_iteration_max_in, double residual_tol_in);
+    void solve(bool verbose);
 
     // default constructor
     MatrixEquationSteady() {};
@@ -170,24 +175,97 @@ class MatrixEquationSteady
 
     }
 
+    private:
+
+    // functions
+    void iterate_solution();
+    void store_solution();
+    void output_solution();
+
 };
 
-void MatrixEquationSteady::iterate_solution()
+void MatrixEquationSteady::set_iteration(int num_iteration_max_in = 500, double residual_tol_in = 1e-5)
 {
     /*
-    
-    Solves for x in Ax = b.
-    Uses the currently stored values in A and b.
+
+    Set parameters needed for iterations when solving the matrix equation.
 
     Arguments
     =========
-    (none)
+    num_iteration_max_in : int
+        Maximum number of iterations.
+    residual_tol_in : double
+        Residual value at which iterations are stopped.
 
     Returns
     =======
     (none)
 
     */
+
+    // set values
+    num_iteration_max = num_iteration_max_in;
+    residual_tol = residual_tol_in;
+
+}
+
+void MatrixEquationSteady::solve(bool verbose = true)
+{
+    /*
+
+    Solves the matrix equation.
+
+    Arguments
+    =========
+    verbose : bool
+        If true, outputs the iteration number and residual.
+        Defaults to true.
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // initalize norm of residual
+    double residual_norm = std::numeric_limits<double>::max();
+
+    // iterate to convergence
+    for (int it = 0; it < num_iteration_max; it++)
+    {
+
+        // store previous value of x_vec
+        Eigen::VectorXd x_last_iteration_vec = x_vec;
+
+        // perform one iteration and store x_vec values into variables and scalars
+        // this automatically updates a_mat, x_vec, and b_vec
+        iterate_solution();
+        store_solution();
+
+        // calculate residual using previous x_vec and current a_mat and b_vec
+        residual_norm = (a_mat*x_last_iteration_vec - b_vec).norm();
+
+        // display iteration count and norm
+        if (verbose)
+        {
+            std::cout << "Iteration: " << it << "; Residual L2 Norm: " << residual_norm << "\n";
+        }
+        
+        // stop if convergence is reached
+        if (residual_norm < residual_tol)
+        {
+            break;
+        }
+
+    }
+
+    // write output files
+    output_solution();
+
+}
+
+void MatrixEquationSteady::iterate_solution()
+{
 
     // update boundary parameters using most recent variable values
     for (auto boundary_group_ptr : boundary_group_ptr_vec)
@@ -222,19 +300,6 @@ void MatrixEquationSteady::iterate_solution()
 
 void MatrixEquationSteady::store_solution()
 {
-    /*
-    
-    Transfers the solutions in x into variable objects.
-
-    Arguments
-    =========
-    (none)
-
-    Returns
-    =======
-    (none)
-
-    */
 
     // iterate through each variable group
     for (auto variable_group_ptr : variable_group_ptr_vec)
@@ -267,6 +332,23 @@ void MatrixEquationSteady::store_solution()
 
         }
 
+    }
+
+}
+
+void MatrixEquationSteady::output_solution()
+{
+
+    // iterate through each variable group
+    for (auto variable_group_ptr : variable_group_ptr_vec)
+    {
+        variable_group_ptr->output_csv();
+    }
+
+    // iterate through each scalar group
+    for (auto scalar_group_ptr : scalar_group_ptr_vec)
+    {
+        scalar_group_ptr->output_csv();
     }
 
 }

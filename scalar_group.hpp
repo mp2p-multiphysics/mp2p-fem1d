@@ -3,6 +3,7 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include "container_typedef.hpp"
 #include "domain_line2.hpp"
 #include "scalar_line2.hpp"
 
@@ -22,6 +23,8 @@ class ScalarGroup
 
     Functions
     =========
+    output_csv : void
+        Outputs a CSV file with the values of the scalar.
     update_value : void
         Recalculates non-constant values.
 
@@ -33,13 +36,15 @@ class ScalarGroup
     int num_point_group = 0;
 
     // point IDs
-    VectorInt point_pgid_vec;  // key: group ID; value: global ID
+    VectorInt point_pfid_to_pgid_vec;  // key: group ID; value: global ID
     MapIntInt point_pgid_to_pfid_map;  // key: global ID; value: group ID
 
     // scalars and domains
     std::vector<ScalarLine2*> scalar_l2_ptr_vec;  // vector of scalars
 
     // functions
+    void output_csv();
+    void output_csv(int ts);
     void update_value();
 
     // default constructor
@@ -82,7 +87,7 @@ class ScalarGroup
 
             // map global ID to group ID and vice versa
             point_pgid_to_pfid_map[pgid] = pfid;
-            point_pgid_vec.push_back(pgid);
+            point_pfid_to_pgid_vec.push_back(pgid);
             pfid++;
 
         }
@@ -93,6 +98,55 @@ class ScalarGroup
     }
 
 };
+
+void ScalarGroup::output_csv()
+{
+    /*
+
+    Outputs a CSV file with the values of the scalar.
+
+    Arguments
+    =========
+    (none)
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // iterate through each scalar
+    for (auto scalar_ptr : scalar_l2_ptr_vec)
+    {
+        scalar_ptr->output_csv();
+    }
+
+}
+
+void ScalarGroup::output_csv(int ts)
+{
+    /*
+
+    Outputs a CSV file with the values of the scalar.
+
+    Arguments
+    =========
+    ts : int
+        Timestep number.
+
+    Returns
+    =======
+    (none)
+
+    */
+
+    // iterate through each scalar
+    for (auto scalar_ptr : scalar_l2_ptr_vec)
+    {
+        scalar_ptr->output_csv(ts);
+    }
+
+}
 
 void ScalarGroup::update_value()
 {

@@ -325,7 +325,7 @@ void PhysicsTransientDiffusion::matrix_fill_domain
             int mat_col = value_group_ptr->start_col + pfid_arr[indx_j];
             a_mat.coeffRef(mat_row, mat_col) += (
                 (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[edid][indx_i][indx_j] +
-                diffcoeff_arr[indx_i]*integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j]
+                diffcoeff_arr[indx_i] * integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j]
             );
             c_mat.coeffRef(mat_row, mat_col) += (dervcoeff_arr[indx_i]/dt)*integral_ptr->integral_Ni_Nj_vec[edid][indx_i][indx_j];
         }}
@@ -334,7 +334,7 @@ void PhysicsTransientDiffusion::matrix_fill_domain
         for (int indx_i = 0; indx_i < 2; indx_i++)
         {
             int mat_row = start_row + pfid_arr[indx_i];
-            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i]*integral_ptr->integral_Ni_vec[edid][indx_i];
+            d_vec.coeffRef(mat_row) += gencoeff_arr[indx_i] * integral_ptr->integral_Ni_vec[edid][indx_i];
         }
 
     }
