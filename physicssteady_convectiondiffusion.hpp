@@ -32,9 +32,9 @@ class PhysicsSteadyConvectionDiffusion : public PhysicsSteadyBase
     set_domain : void
         Set scalars applied to 1D domains.
     set_boundary_dirichlet : void
-        Set a Dirichlet boundary condition along a 1D domain.
+        Set a Dirichlet boundary condition along a 0D domain.
     set_boundary_neumann : void
-        Set a Neumann boundary condition along a 1D domain.
+        Set a Neumann boundary condition along a 0D domain.
 
     */
 
@@ -182,13 +182,13 @@ void PhysicsSteadyConvectionDiffusion::set_boundary_dirichlet(Domain0D &domain_i
 {
     /*
     
-    Set a Dirichlet boundary condition along a 1D domain.
+    Set a Dirichlet boundary condition along a 0D domain.
 
     Arguments
     =========
-    domain_in : Domain1D
+    domain_in : Domain0D
         Domain that this boundary condition applies to.
-    value_constant_in : Scalar1D
+    value_constant_in : Scalar0D
         Constant value prescribed by the boundary condition.
 
     Returns
@@ -210,15 +210,13 @@ void PhysicsSteadyConvectionDiffusion::set_boundary_neumann(Domain0D &domain_in,
 {
     /*
     
-    Set a Neumann boundary condition along a 1D domain.
+    Set a Neumann boundary condition along a 0D domain.
 
     Arguments
     =========
-    domain_in : Domain1D
+    domain_in : Domain0D
         Domain that this boundary condition applies to.
-    integral_in : Integral1D
-        Test function integrals over the domains.
-    value_flux_in : Scalar1D
+    value_flux_in : Scalar0D
         Flux prescribed by the boundary condition.
 
     Returns
@@ -231,7 +229,7 @@ void PhysicsSteadyConvectionDiffusion::set_boundary_neumann(Domain0D &domain_in,
     neumann_domain_ptr_vec.push_back(&domain_in);
     neumann_flux_ptr_vec.push_back(&value_flux_in);
 
-    // add to vector of scalar1d objects
+    // add to vector of scalar0d objects
     scalar0d_ptr_vec.push_back(&value_flux_in);
 
 }
