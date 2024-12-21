@@ -1,35 +1,35 @@
-#ifndef SCALAR_LINE2
-#define SCALAR_LINE2
+#ifndef SCALAR_1D
+#define SCALAR_1D
 #include <fstream>
 #include <sstream>
 #include <functional>
 #include "container_typedef.hpp"
-#include "domain_line2.hpp"
-#include "variable_line2.hpp"
+#include "domain_1d.hpp"
+#include "variable_1d.hpp"
 
 namespace FEM1D
 {
 
-class ScalarLine2
+class Scalar1D
 {
     /*
 
-    Scalar applied over line2 domain elements.
+    Scalar applied over a domain
 
     Variables (for constant values)
     =========
-    domain_in : DomainLine2
+    domain_in : Domain1D
         Domain where scalar value is applied.
     value_constant_in : double
         Value of the scalar.
 
     Variables (for non-constant values)
     =========
-    domain_in : DomainLine2
+    domain_in : Domain1D
         Domain where scalar value is applied.
-    value_function_in : function(double, VectorDouble) -> double
+    value_function_in : function(double, double, VectorDouble) -> double
         Function used to compute scalar values based on variable values.
-    variable_ptr_vec_in : vector<VariableLine2*>
+    variable_ptr_vec_in : vector<Variable1D*>
         vector of pointers to variable objects needed to compute scalar values.
 
     Functions
@@ -40,6 +40,8 @@ class ScalarLine2
         Outputs a CSV file with the values of the scalar.
     update_value : void
         Recalculates non-constant values.
+    get_neighbor_value : VectorDouble
+        Outputs a vector with the scalar values at points surrounding an element.
 
     Notes
     ====
@@ -52,34 +54,32 @@ class ScalarLine2
     public:
 
     // domain where variable is applied
-    DomainLine2* domain_ptr;
+    Domain1D* domain_ptr;
 
     // values in scalar
     VectorDouble point_value_vec;  // key: point domain ID; value: value
-    Vector2D element_value_vec;  // key: element domain ID, point local ID; value: value
 
     // use for non-constant scalars
     bool is_value_constant = true;
     double value_constant = 0;  // used if value is constant
     std::function<double(double, VectorDouble)> value_function;  // used if value is non-constant
-    std::vector<VariableLine2*> variable_ptr_vec;  // variables that values depend on
+    std::vector<Variable1D*> variable_ptr_vec;  // variables that values depend on
 
     // use for generating csv file
-    bool is_file_out = false;
     std::string file_out_base_str;
-    std::vector<std::string> file_out_base_vec;
 
     // functions
     void set_output(std::string file_out_str);
     void output_csv();
     void output_csv(int ts);
     void update_value();
+    VectorDouble get_neighbor_value(int edid);
 
     // default constructor
-    ScalarLine2() {}
+    Scalar1D() {}
     
     // constructor for constant values
-    ScalarLine2(DomainLine2 &domain_in, double value_constant_in)
+    Scalar1D(Domain1D &domain_in, double value_constant_in)
     {
 
         // store domain
@@ -95,7 +95,7 @@ class ScalarLine2
     }
 
     // constructor for non-constant values
-    ScalarLine2(DomainLine2 &domain_in, std::function<double(double, VectorDouble)> value_function_in, std::vector<VariableLine2*> variable_ptr_vec_in)
+    Scalar1D(Domain1D &domain_in, std::function<double(double, VectorDouble)> value_function_in, std::vector<Variable1D*> variable_ptr_vec_in)
     {
 
         // store domain
@@ -113,7 +113,7 @@ class ScalarLine2
 
 };
 
-void ScalarLine2::set_output(std::string file_out_str)
+void Scalar1D::set_output(std::string file_out_str)
 {
     /*
 
@@ -138,21 +138,9 @@ void ScalarLine2::set_output(std::string file_out_str)
     // set file name
     file_out_base_str = file_out_str;
 
-    // generate CSV file when output_csv is called
-    is_file_out = true;
-
-    // split filename at '*'
-    // will be replaced with timestep later
-    std::stringstream file_out_base_stream(file_out_base_str);
-    std::string string_sub;
-    while(std::getline(file_out_base_stream, string_sub, '*'))
-    {
-        file_out_base_vec.push_back(string_sub);
-    }
-
 }
 
-void ScalarLine2::output_csv()
+void Scalar1D::output_csv()
 {
     /*
 
@@ -173,7 +161,7 @@ void ScalarLine2::output_csv()
     */
 
     // do not make file if filename not set
-    if (!is_file_out)
+    if (file_out_base_str.empty())
     {
         return;
     }
@@ -192,7 +180,7 @@ void ScalarLine2::output_csv()
 
 }
 
-void ScalarLine2::output_csv(int ts)
+void Scalar1D::output_csv(int ts)
 {
     /*
 
@@ -215,9 +203,19 @@ void ScalarLine2::output_csv(int ts)
     */
 
     // do not make file if filename not set
-    if (!is_file_out)
+    if (file_out_base_str.empty())
     {
         return;
+    }
+
+    // split filename at '*'
+    // will be replaced with timestep later
+    std::vector<std::string> file_out_base_vec;
+    std::stringstream file_out_base_stream(file_out_base_str);
+    std::string string_sub;
+    while(std::getline(file_out_base_stream, string_sub, '*'))
+    {
+        file_out_base_vec.push_back(string_sub);
     }
 
     // create output filename
@@ -242,7 +240,7 @@ void ScalarLine2::output_csv(int ts)
 
 }
 
-void ScalarLine2::update_value()
+void Scalar1D::update_value()
 {
     /*
 
@@ -282,6 +280,42 @@ void ScalarLine2::update_value()
         point_value_vec[pdid] = value_function(position_x, value_vec);
 
     }
+
+}
+
+VectorDouble Scalar1D::get_neighbor_value(int edid)
+{
+    /*
+    
+    Outputs a vector with the scalar values at points surrounding an element.
+
+    Arguments
+    =========
+    edid : int
+        Domain ID of the element.
+
+    Returns
+    =======
+    value_vec : VectorInt
+        vector with scalar values at points surrounding an element.
+
+    */
+
+    // get point surrounding element
+    VectorInt pgid_vec = domain_ptr->element_edid_plid_to_pgid_vec[edid];
+
+    // initialize vector with values
+    VectorDouble value_vec;
+
+    // iterate through each point and get value
+    for (int pgid : pgid_vec)
+    {
+        int pdid = domain_ptr->point_pgid_to_pdid_map[pgid];
+        double value_sub = point_value_vec[pdid];
+        value_vec.push_back(value_sub);
+    }
+
+    return value_vec;
 
 }
 

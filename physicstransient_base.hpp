@@ -2,11 +2,9 @@
 #define PHYSICSTRANSIENT_BASE
 #include <vector>
 #include "Eigen/Eigen"
-#include "boundary_group.hpp"
 #include "container_typedef.hpp"
-#include "domain_group.hpp"
-#include "scalar_group.hpp"
-#include "integral_group.hpp"
+#include "scalar_0d.hpp"
+#include "scalar_1d.hpp"
 #include "variable_group.hpp"
 
 namespace FEM1D
@@ -26,53 +24,45 @@ class PhysicsTransientBase
         Sets the starting row in A and b where entries are filled up.
     get_start_row : int
         Returns the starting row.
-    get_boundary_group_ptr_vec : vector<BoundaryGroup*>
-        Returns the vector containing pointers to BoundaryGroup objects tied to this physics.
-    get_scalar_group_ptr_vec : vector<ScalarGroup*>
-        Returns the vector containing pointers to ScalarGroup objects tied to this physics.
-    get_variable_group_ptr_vec : vector<VariableGroup*>
+    get_scalar0d_ptr_vec : vector<ScalarGroup*>
+        Returns the vector containing pointers to Scalar0D objects tied to this physics.
+    get_scalar1d_ptr_vec : vector<BoundaryGroup*>
+        Returns the vector containing pointers to Scalar1D objects tied to this physics.
+    get_variablegroup_ptr_vec : vector<VariableGroup*>
         Returns the vector containing pointers to VariableGroup objects tied to this physics.
 
     */
 
     public:
 
-    // variables
-    DomainGroup *domain_group_ptr;
-    BoundaryGroup *boundary_group_ptr;
-    IntegralGroup *integral_group_ptr;
-
-    // vector of scalar and variable groups
-    std::vector<ScalarGroup*> scalar_group_ptr_vec;
-    std::vector<VariableGroup*> variable_group_ptr_vec;
-
+    // vector of scalar and variable 
+    std::vector<Scalar0D*> scalar0d_ptr_vec;
+    std::vector<Scalar1D*> scalar1d_ptr_vec;
+    std::vector<VariableGroup*> variablegroup_ptr_vec;
+    
     // starting row of test functions in matrix equation
     int start_row = -1;
 
     // functions
-    virtual void matrix_fill
-    (
-        Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
-        Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+    virtual void matrix_fill(
+        EigenSparseMatrix &a_mat, EigenSparseMatrix &c_mat, EigenVector &d_vec,
+        EigenVector &x_vec, EigenVector &x_last_timestep_vec, double dt
     );
-    virtual void set_start_row(int start_row_in);
-    virtual int get_start_row();
-    virtual BoundaryGroup* get_boundary_group_ptr();
-    virtual std::vector<ScalarGroup*> get_scalar_group_ptr_vec();
-    virtual std::vector<VariableGroup*> get_variable_group_ptr_vec();
+    virtual void set_start_row(int start_row_in) {start_row = start_row_in;}
+    virtual int get_start_row() {return start_row;}
+    virtual std::vector<Scalar0D*> get_scalar0d_ptr_vec() {return scalar0d_ptr_vec;}
+    virtual std::vector<Scalar1D*> get_scalar1d_ptr_vec() {return scalar1d_ptr_vec;}
+    virtual std::vector<VariableGroup*> get_variablegroup_ptr_vec() {return variablegroup_ptr_vec;}
 
     // default constructor
-    PhysicsTransientBase()
-    {
-
-    }
+    PhysicsTransientBase() {}
 
 };
 
 void PhysicsTransientBase::matrix_fill
 (
-    Eigen::SparseMatrix<double> &a_mat, Eigen::SparseMatrix<double> &c_mat, Eigen::VectorXd &d_vec,
-    Eigen::VectorXd &x_vec, Eigen::VectorXd &x_last_timestep_vec, double dt
+    EigenSparseMatrix &a_mat, EigenSparseMatrix &c_mat, EigenVector &d_vec,
+    EigenVector &x_vec, EigenVector &x_last_timestep_vec, double dt
 )
 {
     /*
@@ -81,15 +71,15 @@ void PhysicsTransientBase::matrix_fill
 
     Arguments
     =========
-    a_mat : Eigen::SparseMatrix<double>
+    a_mat : EigenSparseMatrix
         A in Ax(t+1) = Cx(t) + d.
-    c_mat : Eigen::SparseMatrix<double>
+    c_mat : EigenSparseMatrix
         C in Ax(t+1) = Cx(t) + d.
-    d_vec : Eigen::VectorXd
+    d_vec : EigenVector
         d in Ax(t+1) = Cx(t) + d.
-    x_vec : Eigen::VectorXd
+    x_vec : EigenVector
         x(t+1) in Ax(t+1) = Cx(t) + d.
-    x_last_timestep_vec : Eigen::VectorXd
+    x_last_timestep_vec : EigenVector
         x(t) in Ax(t+1) = Cx(t) + d.
     dt : double
         Length of the timestep.
@@ -99,111 +89,6 @@ void PhysicsTransientBase::matrix_fill
     (none)
 
     */
-
-}
-
-void PhysicsTransientBase::set_start_row(int start_row_in)
-{
-    /*
-
-    Sets the starting row in A and b where entries are filled up.
-
-    Arguments
-    =========
-    start_row_in : int
-        Starting row in A and b.
-
-    Returns
-    =======
-    (none)
-
-    */
-    
-    start_row = start_row_in;
-
-}
-
-int PhysicsTransientBase::get_start_row()
-{
-    /*
-
-    Returns the starting row.
-
-    Arguments
-    =========
-    (none)
-
-    Returns
-    =======
-    start_row : int
-        Starting row in A and b.
-
-    */
-
-    return start_row;
-
-}
-
-BoundaryGroup* PhysicsTransientBase::get_boundary_group_ptr()
-{
-    /*
-
-    Returns the pointer to the BoundaryGroup object tied to this physics.
-
-    Arguments
-    =========
-    (none)
-
-    Returns
-    =======
-    boundary_group_ptr : BoundaryGroup*
-        Pointer to BoundaryGroup object.
-
-    */
-    
-    return boundary_group_ptr;
-
-}
-
-std::vector<ScalarGroup*> PhysicsTransientBase::get_scalar_group_ptr_vec()
-{
-    /*
-
-    Returns the vector containing pointers to ScalarGroup objects tied to this physics.
-
-    Arguments
-    =========
-    (none)
-
-    Returns
-    =======
-    scalar_group_ptr : vector<ScalarGroup*>
-        Vector containing pointers to ScalarGroup objects.
-
-    */
-    
-    return scalar_group_ptr_vec;
-
-}
-
-std::vector<VariableGroup*> PhysicsTransientBase::get_variable_group_ptr_vec()
-{
-    /*
-
-    Returns the vector containing pointers to VariableGroup objects tied to this physics.
-
-    Arguments
-    =========
-    (none)
-
-    Returns
-    =======
-    variable_group_ptr : vector<VariableGroup*>
-        Vector containing pointers to VariableGroup objects.
-
-    */
-
-    return variable_group_ptr_vec;
 
 }
 

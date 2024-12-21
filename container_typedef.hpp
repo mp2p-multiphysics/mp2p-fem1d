@@ -2,27 +2,28 @@
 #define CONTAINER_TYPEDEF
 #include <unordered_map>
 #include <vector>
+#include "Eigen/Eigen"
 
 namespace FEM1D
 {
 
-// typedef of vectors of numbers
-typedef std::vector<double> VectorDouble;
+// nested int vectors
 typedef std::vector<int> VectorInt;
+typedef std::vector<VectorInt> VectorInt2D;
 
-// typedef of unordered maps
+// nested double vectors
+typedef std::vector<double> VectorDouble;
+typedef std::vector<VectorDouble> VectorDouble2D;
+typedef std::vector<VectorDouble2D> VectorDouble3D;
+typedef std::vector<VectorDouble3D> VectorDouble4D;
+
+// unordered maps
 typedef std::unordered_map<int, int> MapIntInt;
 
-// nested vectors for domain integrals
-typedef std::vector<double> Vector1D;
-typedef std::vector<Vector1D> Vector2D;
-typedef std::vector<Vector2D> Vector3D;
-typedef std::vector<Vector3D> Vector4D;
-
-// nested vectors and maps for boundary integrals
-typedef std::unordered_map<int, std::unordered_map<int, double>> MapVector2D;
-typedef std::unordered_map<int, std::unordered_map<int, Vector1D>> MapVector3D;
-typedef std::unordered_map<int, std::unordered_map<int, Vector2D>> MapVector4D;
+// Eigen objects
+typedef Eigen::SparseMatrix<double, Eigen::RowMajor> EigenSparseMatrix;
+typedef Eigen::Triplet<double> EigenTriplet;
+typedef Eigen::VectorXd EigenVector;
 
 }
 
