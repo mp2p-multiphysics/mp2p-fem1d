@@ -45,7 +45,7 @@ class PhysicsTransientBase
 
     // functions
     virtual void matrix_fill(
-        EigenSparseMatrix &a_mat, EigenSparseMatrix &c_mat, EigenVector &d_vec,
+        EigenTripletVector &a_trivec, EigenTripletVector &c_trivec, EigenVector &d_vec,
         EigenVector &x_vec, EigenVector &x_last_timestep_vec, double dt
     );
     virtual void set_start_row(int start_row_in) {start_row = start_row_in;}
@@ -61,7 +61,7 @@ class PhysicsTransientBase
 
 void PhysicsTransientBase::matrix_fill
 (
-    EigenSparseMatrix &a_mat, EigenSparseMatrix &c_mat, EigenVector &d_vec,
+    EigenTripletVector &a_trivec, EigenTripletVector &c_trivec, EigenVector &d_vec,
     EigenVector &x_vec, EigenVector &x_last_timestep_vec, double dt
 )
 {
@@ -71,9 +71,9 @@ void PhysicsTransientBase::matrix_fill
 
     Arguments
     =========
-    a_mat : EigenSparseMatrix
+    a_trivec : EigenTripletVector
         A in Ax(t+1) = Cx(t) + d.
-    c_mat : EigenSparseMatrix
+    c_trivec : EigenTripletVector
         C in Ax(t+1) = Cx(t) + d.
     d_vec : EigenVector
         d in Ax(t+1) = Cx(t) + d.

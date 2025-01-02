@@ -23,6 +23,12 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     
     0 = -div(-b * grad(u)) + c
 
+    Variables
+    =========
+    value_in : VariableGroup
+        u in 0 = -div(-b * grad(u)) + c.
+        This will be solved for by the matrix equation.
+
     Functions
     =========
     matrix_fill : void
@@ -42,6 +48,10 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
 
     // variables
     VariableGroup* value_ptr;
+
+    // vectors indicating dirichlet BCs
+    // [pfid] -> true if dirichlet bc
+    std::vector<bool> is_value_dirichlet_vec;
 
     // domain objects
     std::vector<Domain1D*> domain_ptr_vec;
@@ -66,8 +76,7 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     int start_row = -1;
 
     // functions
-    void matrix_fill(EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec);
-    void set_variablegroup(VariableGroup &value_in);
+    void matrix_fill(EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec);
     void set_domain(Domain1D &domain_in, Integral1D &integral_in, Scalar1D &diffusioncoefficient_in, Scalar1D &generationcoefficient_in);
     void set_boundary_dirichlet(Domain0D &domain_in, Scalar0D &value_constant_in);
     void set_boundary_neumann(Domain0D &domain_in, Scalar0D &value_flux_in);
@@ -82,57 +91,41 @@ class PhysicsSteadyDiffusion : public PhysicsSteadyBase
     // default constructor
     PhysicsSteadyDiffusion() {}
 
+    // constructor
+    PhysicsSteadyDiffusion(VariableGroup &value_in)
+    {
+
+        // set variable groups
+        value_ptr = &value_in;
+
+        // add to vector of variable groups
+        variablegroup_ptr_vec.push_back(&value_in);
+
+        // vector indicating if dirichlet bc is applied
+        is_value_dirichlet_vec = std::vector<bool> (value_in.num_point, false);
+
+    }
+
     private:
 
     void matrix_fill_domain
     (
-        std::vector<EigenTriplet> &delta_a_triplet_vec, EigenVector &b_vec, EigenVector &x_vec,
+        EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
         Domain1D *domain_ptr, Integral1D *integral_ptr,
         Scalar1D *diffusioncoefficient_ptr, Scalar1D *generationcoefficient_ptr
     );
     void matrix_fill_neumann
     (
-        EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
+        EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
         Domain0D *domain_ptr, Scalar0D *value_flux_ptr
-    );
-    void matrix_fill_dirichlet_clear
-    (
-        EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
-        Domain0D *domain_ptr
     );
     void matrix_fill_dirichlet
     (
-        EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
+        EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
         Domain0D *domain_ptr, Scalar0D *value_constant_ptr
     );
 
 };
-
-void PhysicsSteadyDiffusion::set_variablegroup(VariableGroup &value_in)
-{
-    /*
-    
-    Set variables used in this physics.
-
-    Arguments
-    =========
-    value_in : VariableGroup
-        u in 0 = -div(-b * grad(u)) + c.
-        This will be solved for by the matrix equation.
-
-    Returns
-    =======
-    (none)
-    
-    */
-
-    // set variable groups
-    value_ptr = &value_in;
-
-    // add to vector of variable groups
-    variablegroup_ptr_vec.push_back(&value_in);
-
-}
 
 void PhysicsSteadyDiffusion::set_domain(Domain1D &domain_in, Integral1D &integral_in, Scalar1D &diffusioncoefficient_in, Scalar1D &generationcoefficient_in)
 {
@@ -199,6 +192,13 @@ void PhysicsSteadyDiffusion::set_boundary_dirichlet(Domain0D &domain_in, Scalar0
     // add to vector of scalar0d objects
     scalar0d_ptr_vec.push_back(&value_constant_in);
 
+    // specify points with dirichlet BC
+    for (auto pgid : domain_in.point_pdid_to_pgid_vec)
+    {
+        int pfid = value_ptr->point_pgid_to_pfid_map[pgid];
+        is_value_dirichlet_vec[pfid] = true;
+    }
+
 }
 
 void PhysicsSteadyDiffusion::set_boundary_neumann(Domain0D &domain_in, Scalar0D &value_flux_in)
@@ -231,7 +231,7 @@ void PhysicsSteadyDiffusion::set_boundary_neumann(Domain0D &domain_in, Scalar0D 
 
 void PhysicsSteadyDiffusion::matrix_fill
 (
-    EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec
+    EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec
 )
 {
     /*
@@ -240,7 +240,7 @@ void PhysicsSteadyDiffusion::matrix_fill
 
     Arguments
     =========
-    a_mat : EigenSparseMatrix
+    a_trivec : EigenTripletVector
         A in Ax = b.
     b_vec : EigenVector
         b in Ax = b.
@@ -253,11 +253,6 @@ void PhysicsSteadyDiffusion::matrix_fill
 
     */
 
-    // represent matrix as triplets for performance
-    std::vector<EigenTriplet> delta_a_triplet_vec;
-    int num_equation = a_mat.rows();
-    delta_a_triplet_vec.reserve(10*num_equation); // estimated number of entries
-
    // iterate through each domain
    for (int indx_d = 0; indx_d < domain_ptr_vec.size(); indx_d++)
    {
@@ -269,14 +264,9 @@ void PhysicsSteadyDiffusion::matrix_fill
         Scalar1D *generationcoefficient_ptr = generationcoefficient_ptr_vec[indx_d];
 
         // fill up matrix with domain equations
-        matrix_fill_domain(delta_a_triplet_vec, b_vec, x_vec, domain_ptr, integral_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
+        matrix_fill_domain(a_trivec, b_vec, x_vec, domain_ptr, integral_ptr, diffusioncoefficient_ptr, generationcoefficient_ptr);
 
    }
-
-    // convert triplet vector to sparse matrix
-    EigenSparseMatrix delta_a_mat(num_equation, num_equation);
-    delta_a_mat.setFromTriplets(delta_a_triplet_vec.begin(), delta_a_triplet_vec.end());
-    a_mat += delta_a_mat;
 
    // iterate through each neumann boundary
    for (int indx_d = 0; indx_d < neumann_domain_ptr_vec.size(); indx_d++)
@@ -287,19 +277,7 @@ void PhysicsSteadyDiffusion::matrix_fill
         Scalar0D *value_flux_ptr = neumann_flux_ptr_vec[indx_d];
 
         // fill up matrix with boundary conditions
-        matrix_fill_neumann(a_mat, b_vec, x_vec, domain_ptr, value_flux_ptr);
-
-   }
-
-   // clear equations with dirichlet boundary conditions
-   for (int indx_d = 0; indx_d < dirichlet_domain_ptr_vec.size(); indx_d++)
-   {
-
-        // subset domain objects
-        Domain0D *domain_ptr = dirichlet_domain_ptr_vec[indx_d];
-
-        // fill up matrix with boundary conditions
-        matrix_fill_dirichlet_clear(a_mat, b_vec, x_vec, domain_ptr);
+        matrix_fill_neumann(a_trivec, b_vec, x_vec, domain_ptr, value_flux_ptr);
 
    }
 
@@ -312,7 +290,7 @@ void PhysicsSteadyDiffusion::matrix_fill
         Scalar0D *value_constant_ptr = dirichlet_constant_ptr_vec[indx_d];
 
         // fill up matrix with boundary conditions
-        matrix_fill_dirichlet(a_mat, b_vec, x_vec, domain_ptr, value_constant_ptr);
+        matrix_fill_dirichlet(a_trivec, b_vec, x_vec, domain_ptr, value_constant_ptr);
 
    }
 
@@ -320,7 +298,7 @@ void PhysicsSteadyDiffusion::matrix_fill
 
 void PhysicsSteadyDiffusion::matrix_fill_domain
 (
-    std::vector<EigenTriplet> &delta_a_triplet_vec, EigenVector &b_vec, EigenVector &x_vec,
+    EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
     Domain1D *domain_ptr, Integral1D *integral_ptr,
     Scalar1D *diffusioncoefficient_ptr, Scalar1D *generationcoefficient_ptr
 )
@@ -341,19 +319,36 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
         // matrix row = start_row of test function (physics) + group ID of variable
         // matrix column = start_column of variable + group ID of variable
 
-        // calculate a_mat coefficients
-        for (int indx_i = 0; indx_i < domain_ptr->num_neighbor; indx_i++){
-        for (int indx_j = 0; indx_j < domain_ptr->num_neighbor; indx_j++){
-            int mat_row = start_row + pfid_vec[indx_i];
-            int mat_col = value_ptr->start_col + pfid_vec[indx_j];
-            delta_a_triplet_vec.push_back(EigenTriplet(mat_row, mat_col, diffcoeff_vec[indx_i] * integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j]));
-        }}
-
-        // calculate b_vec coefficients
+        // iterate through test functions
+        // associated with matrix row
         for (int indx_i = 0; indx_i < domain_ptr->num_neighbor; indx_i++)
         {
+
+            // skip if matrix row has dirichlet condition
+            if (is_value_dirichlet_vec[pfid_vec[indx_i]])
+            {
+                continue;
+            }
+                
+            // calculate matrix row
             int mat_row = start_row + pfid_vec[indx_i];
+
+            // iterate through trial functions
+            // associated with matrix column
+            for (int indx_j = 0; indx_j < domain_ptr->num_neighbor; indx_j++)
+            {
+                
+                // calculate matrix column
+                int mat_col = value_ptr->start_col + pfid_vec[indx_j];
+
+                // append to a_trivec
+                a_trivec.push_back(EigenTriplet(mat_row, mat_col, diffcoeff_vec[indx_i] * integral_ptr->integral_div_Ni_dot_div_Nj_vec[edid][indx_i][indx_j]));
+
+            }
+
+            // append to b_vec
             b_vec.coeffRef(mat_row) += gencoeff_vec[indx_i] * integral_ptr->integral_Ni_vec[edid][indx_i];
+
         }
 
     }
@@ -362,7 +357,7 @@ void PhysicsSteadyDiffusion::matrix_fill_domain
 
 void PhysicsSteadyDiffusion::matrix_fill_neumann
 (
-    EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
+    EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
     Domain0D *domain_ptr, Scalar0D *value_flux_ptr
 )
 {
@@ -377,37 +372,23 @@ void PhysicsSteadyDiffusion::matrix_fill_neumann
         // get group ID of points
         VectorInt pfid_vec = value_ptr->get_neighbor_pfid(domain_ptr, edid);
 
-        // calculate b_vec coefficients
+        // iterate through test functions
+        // associated with matrix row
         for (int indx_i = 0; indx_i < domain_ptr->num_neighbor; indx_i++)
         {
+
+            // skip if matrix row has dirichlet condition
+            if (is_value_dirichlet_vec[pfid_vec[indx_i]])
+            {
+                continue;
+            }
+                
+            // calculate matrix row
             int mat_row = start_row + pfid_vec[indx_i];
+
+            // append to b_vec
             b_vec.coeffRef(mat_row) += value_flux_vec[indx_i];
-        }
 
-    }
-
-}
-
-void PhysicsSteadyDiffusion::matrix_fill_dirichlet_clear
-(
-    EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
-    Domain0D *domain_ptr
-)
-{
-
-    // iterate for each domain element
-    for (int edid = 0; edid < domain_ptr->num_element; edid++)
-    {
-
-        // get group ID of points
-        VectorInt pfid_vec = value_ptr->get_neighbor_pfid(domain_ptr, edid);
-
-        // clear rows
-        for (int indx_i = 0; indx_i < domain_ptr->num_neighbor; indx_i++)
-        {
-            int mat_row = start_row + pfid_vec[indx_i];
-            a_mat.row(mat_row) *= 0.;
-            b_vec.coeffRef(mat_row) = 0.;
         }
 
     }
@@ -416,7 +397,7 @@ void PhysicsSteadyDiffusion::matrix_fill_dirichlet_clear
 
 void PhysicsSteadyDiffusion::matrix_fill_dirichlet
 (
-    EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec,
+    EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec,
     Domain0D *domain_ptr, Scalar0D *value_constant_ptr
 )
 {
@@ -436,7 +417,7 @@ void PhysicsSteadyDiffusion::matrix_fill_dirichlet
         {
             int mat_row = start_row + pfid_vec[indx_i];
             int mat_col = value_ptr->start_col + pfid_vec[indx_i];
-            a_mat.coeffRef(mat_row, mat_col) += 1.;
+            a_trivec.push_back(EigenTriplet(mat_row, mat_col, 1.));
             b_vec.coeffRef(mat_row) += value_constant_vec[indx_i];
         }
 

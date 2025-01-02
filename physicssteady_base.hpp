@@ -44,7 +44,7 @@ class PhysicsSteadyBase
     int start_row = -1;
 
     // functions
-    virtual void matrix_fill(EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec);
+    virtual void matrix_fill(EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec);
     virtual void set_start_row(int start_row_in) {start_row = start_row_in;}
     virtual int get_start_row() {return start_row;}
     virtual std::vector<Scalar0D*> get_scalar0d_ptr_vec() {return scalar0d_ptr_vec;}
@@ -56,7 +56,7 @@ class PhysicsSteadyBase
 
 };
 
-void PhysicsSteadyBase::matrix_fill(EigenSparseMatrix &a_mat, EigenVector &b_vec, EigenVector &x_vec)
+void PhysicsSteadyBase::matrix_fill(EigenTripletVector &a_trivec, EigenVector &b_vec, EigenVector &x_vec)
 {
     /*
 
@@ -64,7 +64,7 @@ void PhysicsSteadyBase::matrix_fill(EigenSparseMatrix &a_mat, EigenVector &b_vec
 
     Arguments
     =========
-    a_mat : EigenSparseMatrix
+    a_trivec : EigenTripletVector
         A in Ax = b.
     b_vec : EigenVector
         b in Ax = b.

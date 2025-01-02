@@ -48,6 +48,8 @@ class MatrixEquationTransient
 
     // matrix equation variables
     Eigen::SparseLU<EigenSparseMatrix, Eigen::COLAMDOrdering<int>> solver;
+    EigenTripletVector a_trivec;
+    EigenTripletVector c_trivec;
     EigenSparseMatrix a_mat;
     EigenSparseMatrix c_mat;
     EigenVector d_vec;
@@ -115,10 +117,12 @@ class MatrixEquationTransient
         // initialize matrix equation variables
         a_mat = EigenSparseMatrix (num_equation, num_equation);
         c_mat = EigenSparseMatrix (num_equation, num_equation);
-        a_mat.reserve(20*num_equation);
-        c_mat.reserve(20*num_equation);
         d_vec = EigenVector::Zero(num_equation);
         x_vec = EigenVector::Zero(num_equation);
+        a_trivec.reserve(10*num_equation);
+        c_trivec.reserve(5*num_equation);
+        a_mat.reserve(10*num_equation);
+        c_mat.reserve(5*num_equation);
 
         // extract scalars and vectors from each physics
 
@@ -185,9 +189,10 @@ class MatrixEquationTransient
     }
 
     private:
-    void iterate_solution(double dt);
-    void store_solution();
-    void output_solution(int ts);
+    void update_scalar();
+    void matrix_solve(double dt);
+    void update_variable();
+    void output_scalar_variable(int ts);
 
 };
 
@@ -269,7 +274,7 @@ void MatrixEquationTransient::solve(bool verbose = true)
         // extract output values
         if (ts % num_timestep_output == 0)
         {
-            output_solution(ts);
+            output_scalar_variable(ts);
         }
 
         // initialize for iteration
@@ -284,8 +289,8 @@ void MatrixEquationTransient::solve(bool verbose = true)
 
             // perform one iteration and store x_vec values into variables and scalars
             // this automatically updates a_mat, x_vec, and c_mat, and d_vec
-            iterate_solution(dt);
-            store_solution();
+            matrix_solve(dt);
+            update_variable();
 
             // calculate residual using previous x_vec and current a_mat and b_vec
             residual_norm = (a_mat*x_last_iteration_vec - c_mat*x_last_timestep_vec - d_vec).norm();
@@ -311,7 +316,7 @@ void MatrixEquationTransient::solve(bool verbose = true)
 
 }
 
-void MatrixEquationTransient::iterate_solution(double dt)
+void MatrixEquationTransient::update_scalar()
 {
 
     // update scalars using most recent variable values
@@ -324,27 +329,38 @@ void MatrixEquationTransient::iterate_solution(double dt)
         scalar1d_ptr->update_value();
     }
 
+}
+
+void MatrixEquationTransient::matrix_solve(double dt)
+{
+
     // reset matrices
-    a_mat.setZero();
-    c_mat.setZero();
+    a_trivec.clear();
+    c_trivec.clear();
     d_vec.setZero();
     x_vec.setZero();
 
     // fill up a_mat, c_mat, and d_vec with each physics
     for (auto physics_ptr : physics_ptr_vec)
     {
-        physics_ptr->matrix_fill(a_mat, c_mat, d_vec, x_vec, x_last_timestep_vec, dt);
+        physics_ptr->matrix_fill(a_trivec, c_trivec, d_vec, x_vec, x_last_timestep_vec, dt);
     }
+
+    // convert triplet vector to sparse matrix
+    // this also resets a_mat and c_mat
+    a_mat.setFromTriplets(a_trivec.begin(), a_trivec.end());
+    c_mat.setFromTriplets(c_trivec.begin(), c_trivec.end());
 
     // solve the matrix equation
     // b_vec = c_mat*x_last_timestep_vec + d_vec
+    a_mat.makeCompressed();
     solver.analyzePattern(a_mat);
     solver.factorize(a_mat);
     x_vec = solver.solve(c_mat*x_last_timestep_vec + d_vec);
 
 }
 
-void MatrixEquationTransient::store_solution()
+void MatrixEquationTransient::update_variable()
 {
 
     // iterate through each variable group
@@ -376,7 +392,7 @@ void MatrixEquationTransient::store_solution()
 
 }
 
-void MatrixEquationTransient::output_solution(int ts)
+void MatrixEquationTransient::output_scalar_variable(int ts)
 {
 
     // iterate through each variable group

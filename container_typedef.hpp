@@ -21,8 +21,9 @@ typedef std::vector<VectorDouble3D> VectorDouble4D;
 typedef std::unordered_map<int, int> MapIntInt;
 
 // Eigen objects
-typedef Eigen::SparseMatrix<double, Eigen::RowMajor> EigenSparseMatrix;
+typedef Eigen::SparseMatrix<double, Eigen::ColMajor> EigenSparseMatrix;
 typedef Eigen::Triplet<double> EigenTriplet;
+typedef std::vector<Eigen::Triplet<double>> EigenTripletVector;
 typedef Eigen::VectorXd EigenVector;
 
 }
